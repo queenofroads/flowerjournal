@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flower Journal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌸</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-petals" id="bgPetals" aria-hidden="true"></div>
+  <div class="app">
+    <header class="hero">
+      <h1>Flower Journal</h1>
+      <p class="tagline">Open one, capture a memory, and watch your Journal cards grow.</p>
+    </header>
+
+    <nav class="month-nav">
+      <button id="prevMonth" class="nav-btn" aria-label="Previous month">‹</button>
+      <div class="month-label">
+        <h2 id="monthLabel"></h2>
+        <span id="bloomCount" class="bloom-count"></span>
+      </div>
+      <button id="nextMonth" class="nav-btn" aria-label="Next month">›</button>
+    </nav>
+
+    <div class="weekday-row" id="weekdayRow"></div>
+
+    <main id="calendarGrid" class="calendar-grid" aria-live="polite"></main>
+
+    <button id="todayBtn" class="today-btn">Back to Today</button>
+  </div>
+
+  <!-- Entry Modal -->
+  <div id="modalOverlay" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalDate">
+      <button id="closeModal" class="close-btn" aria-label="Close">×</button>
+
+      <div class="modal-flower" id="modalFlowerDisplay"></div>
+      <h3 id="modalDate"></h3>
+
+      <div class="field-group">
+        <label class="field-label">Pick a flower for today</label>
+        <div id="flowerPicker" class="flower-picker"></div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">How did today feel?</label>
+        <div id="moodPicker" class="mood-picker"></div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="memoryText">Capture the memory</label>
+        <textarea id="memoryText" rows="4" placeholder="What happened today? What made it worth remembering?"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Add a photo (optional)</label>
+        <div class="photo-upload">
+          <input type="file" id="photoInput" accept="image/*" />
+          <div id="photoPreviewWrap" class="photo-preview-wrap" hidden>
+            <img id="photoPreview" alt="Memory photo preview" />
+            <button id="removePhoto" class="remove-photo-btn" type="button">Remove photo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="deleteEntry" class="btn btn-ghost" hidden>Delete entry</button>
+        <button id="saveEntry" class="btn btn-primary">Save memory</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
