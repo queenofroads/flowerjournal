@@ -30,7 +30,33 @@ body {
 
 .app { max-width: 940px; margin: 0 auto; position: relative; z-index: 1; }
 
-.bg-petals { display: none; }   /* keep it clean, gallery-like */
+/* Ambient drifting petals */
+.bg-petals {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-petal {
+  position: absolute;
+  top: -40px;
+  opacity: 0.55;
+  animation-name: petalDrift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.bg-petal svg { width: 100%; height: auto; display: block; }
+
+@keyframes petalDrift {
+  0% { transform: translate(0, -5vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.5; }
+  100% { transform: translate(var(--drift, 40px), 110vh) rotate(400deg); opacity: 0; }
+}
 
 /* ---- Header / wordmark ---- */
 .hero { text-align: center; margin-bottom: 26px; }
@@ -50,10 +76,11 @@ body {
 .tagline {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 
 /* ---- Month nav ---- */
