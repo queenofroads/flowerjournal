@@ -17,13 +17,18 @@
     </header>
 
     <nav class="month-nav">
-      <button id="prevMonth" class="nav-btn" aria-label="Previous month">‹</button>
+      <button id="prevMonth" class="nav-btn" aria-label="Previous">‹</button>
       <div class="month-label">
         <h2 id="monthLabel"></h2>
         <span id="bloomCount" class="bloom-count"></span>
       </div>
-      <button id="nextMonth" class="nav-btn" aria-label="Next month">›</button>
+      <button id="nextMonth" class="nav-btn" aria-label="Next">›</button>
     </nav>
+
+    <div class="view-toggle" role="tablist" aria-label="View">
+      <button id="viewMonth" class="view-btn active" role="tab" aria-selected="true">Month</button>
+      <button id="viewYear" class="view-btn" role="tab" aria-selected="false">Year in bouquets</button>
+    </div>
 
     <div class="weekday-row" id="weekdayRow"></div>
 

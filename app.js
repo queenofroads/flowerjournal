@@ -5,12 +5,15 @@
 
   // Muted-warm botanical palette, echoing hand-painted gouache/watercolor references.
   const FLOWERS = {
-    rose:      { label: 'Rose',      petal: '#e8a0aa', petal2: '#f2c2c8', ink: '#bd6d78', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'rose' },
-    poppy:     { label: 'Poppy',     petal: '#e86a50', petal2: '#f28e77', ink: '#b3452f', leaf: '#94a06a', leafInk: '#6d7a46', core: '#3d3a46', draw: 'poppy' },
-    anemone:   { label: 'Anemone',   petal: '#b9d2dc', petal2: '#d7e6ec', ink: '#7995a2', leaf: '#94a06a', leafInk: '#6d7a46', core: '#33324c', draw: 'anemone' },
-    sunflower: { label: 'Sunflower', petal: '#f0be48', petal2: '#f7d574', ink: '#cf9528', leaf: '#94a06a', leafInk: '#6d7a46', core: '#7a4e29', draw: 'sunflower' },
-    daisy:     { label: 'Daisy',     petal: '#fffdf7', petal2: '#ffffff', ink: '#d6cbb7', leaf: '#94a06a', leafInk: '#6d7a46', core: '#f0be48', coreInk: '#cf9528', draw: 'daisy' },
-    lavender:  { label: 'Lavender',  petal: '#a98ecd', petal2: '#c4addf', ink: '#7c62a6', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'lavender' },
+    rose:        { label: 'Rose',        petal: '#e8a0aa', petal2: '#f2c2c8', ink: '#bd6d78', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'rose' },
+    poppy:       { label: 'Poppy',       petal: '#e86a50', petal2: '#f28e77', ink: '#b3452f', leaf: '#94a06a', leafInk: '#6d7a46', core: '#3d3a46', draw: 'poppy' },
+    anemone:     { label: 'Anemone',     petal: '#b9d2dc', petal2: '#d7e6ec', ink: '#7995a2', leaf: '#94a06a', leafInk: '#6d7a46', core: '#33324c', draw: 'anemone' },
+    sunflower:   { label: 'Sunflower',   petal: '#f0be48', petal2: '#f7d574', ink: '#cf9528', leaf: '#94a06a', leafInk: '#6d7a46', core: '#7a4e29', draw: 'sunflower' },
+    daisy:       { label: 'Daisy',       petal: '#fffdf7', petal2: '#ffffff', ink: '#d6cbb7', leaf: '#94a06a', leafInk: '#6d7a46', core: '#f0be48', coreInk: '#cf9528', draw: 'daisy' },
+    tulip:       { label: 'Tulip',       petal: '#e8788f', petal2: '#f2a6b6', ink: '#bf5a72', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'tulip' },
+    ranunculus:  { label: 'Ranunculus',  petal: '#ee9a80', petal2: '#f6c1ae', ink: '#cd7157', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'ranunculus' },
+    lavender:    { label: 'Lavender',    petal: '#a98ecd', petal2: '#c4addf', ink: '#7c62a6', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'lavender' },
+    forgetmenot: { label: 'Forget-me-not', petal: '#8fb6e6', petal2: '#b3d0f0', ink: '#5f88bf', core: '#f0be48', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'forgetmenot' },
   };
 
   const PENCIL = { stroke: '#b0a086', fill: 'none' };
@@ -28,6 +31,7 @@
   // Every flower is drawn on a 120x120 canvas and rendered in two modes:
   //   'ink'   -> uncoloured pencil line-art (a day waiting for a memory)
   //   'color' -> full watercolour-and-ink illustration (a day remembered)
+  // opts.leaves === false draws just the flower head (used inside bouquets).
 
   function teardrop(cx, cy, len, wid, angle) {
     const p = `M${cx} ${cy}`
@@ -39,7 +43,7 @@
   function stipple(cx, cy, r, n, color) {
     let s = '';
     for (let i = 0; i < n; i++) {
-      const a = i * 2.399963;                 // golden angle -> even packing
+      const a = i * 2.399963;
       const rr = r * Math.sqrt((i + 0.5) / n);
       s += `<circle cx="${(cx + Math.cos(a) * rr).toFixed(1)}" cy="${(cy + Math.sin(a) * rr).toFixed(1)}" r="1" fill="${color}"/>`;
     }
@@ -56,7 +60,11 @@
     </g>`;
   }
 
-  function drawRose(f, mode) {
+  function base(f, mode, opts) {
+    return (opts && opts.leaves === false) ? '' : leaves(f, mode);
+  }
+
+  function drawRose(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
@@ -64,7 +72,7 @@
     for (let i = 0; i < 6; i++) outer += teardrop(60, 54, 38, 20, i * 60 + 15);
     let mid = '';
     for (let i = 0; i < 5; i++) mid += teardrop(60, 54, 26, 15, i * 72);
-    return `${leaves(f, mode)}
+    return `${base(f, mode, opts)}
       <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round">${outer}</g>
       <g fill="${fill2}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round">${mid}</g>
       <g fill="none" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -74,7 +82,7 @@
       </g>`;
   }
 
-  function drawPoppy(f, mode) {
+  function drawPoppy(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
@@ -83,14 +91,14 @@
     for (let i = 0; i < 5; i++) back += teardrop(60, 52, 40, 27, i * 72 + 36);
     let front = '';
     for (let i = 0; i < 5; i++) front += teardrop(60, 52, 30, 22, i * 72);
-    return `${leaves(f, mode)}
+    return `${base(f, mode, opts)}
       <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round">${back}</g>
       <g fill="${fill2}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round">${front}</g>
       <circle cx="60" cy="52" r="9" fill="${core}" stroke="${stroke}" stroke-width="1.6"/>
       ${mode === 'ink' ? '' : stipple(60, 52, 6, 10, f.petal2)}`;
   }
 
-  function drawAnemone(f, mode) {
+  function drawAnemone(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
@@ -104,7 +112,7 @@
       stamens += `<line x1="60" y1="52" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`
         + `<circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="1.4" fill="${core}" stroke="none"/>`;
     }
-    return `${leaves(f, mode)}
+    return `${base(f, mode, opts)}
       <g fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round">${petals}</g>
       <g fill="${fill2}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round">
         ${[0,72,144,216,288].map(a => teardrop(60,52,24,12,a)).join('')}
@@ -113,7 +121,7 @@
       <circle cx="60" cy="52" r="7" fill="${core}" stroke="${stroke}" stroke-width="1.4"/>`;
   }
 
-  function drawSunflower(f, mode) {
+  function drawSunflower(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
@@ -122,27 +130,57 @@
     for (let i = 0; i < 16; i++) back += teardrop(60, 50, 40, 8, i * 22.5 + 11);
     let front = '';
     for (let i = 0; i < 12; i++) front += teardrop(60, 50, 30, 9, i * 30);
-    return `${leaves(f, mode)}
+    return `${base(f, mode, opts)}
       <g fill="${fill}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round">${back}</g>
       <g fill="${fill2}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round">${front}</g>
       <circle cx="60" cy="50" r="15" fill="${core}" stroke="${stroke}" stroke-width="1.8"/>
       ${mode === 'ink' ? '' : stipple(60, 50, 12, 30, '#5c3a1f')}`;
   }
 
-  function drawDaisy(f, mode) {
+  function drawDaisy(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
     const fill = mode === 'ink' ? 'none' : f.petal;
     const core = mode === 'ink' ? 'none' : (f.core || '#f0be48');
     const coreInk = mode === 'ink' ? PENCIL.stroke : (f.coreInk || '#cf9528');
     let petals = '';
     for (let i = 0; i < 13; i++) petals += teardrop(60, 50, 40, 10, i * (360 / 13));
-    return `${leaves(f, mode)}
+    return `${base(f, mode, opts)}
       <g fill="${fill}" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round">${petals}</g>
       <circle cx="60" cy="50" r="12" fill="${core}" stroke="${coreInk}" stroke-width="1.8"/>
       ${mode === 'ink' ? '' : stipple(60, 50, 9, 16, coreInk)}`;
   }
 
-  function drawLavender(f, mode) {
+  function drawTulip(f, mode, opts) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const fill2 = mode === 'ink' ? 'none' : f.petal2;
+    // cup with three pointed petals on top, rounded base tapering to the stem
+    const cup = 'M42 62 C42 50 43 42 47 42 C51 42 53 50 54 58 C55 49 57 40 60 40 C63 40 65 49 66 58 C67 50 69 42 73 42 C77 42 78 50 78 62 C78 78 71 88 60 88 C49 88 42 78 42 62 Z';
+    const inner = 'M51 62 C51 53 52 48 55 55 C56 49 58 46 60 46 C62 46 64 49 65 55 C68 48 69 53 69 62 C69 76 65 82 60 82 C55 82 51 76 51 62 Z';
+    return `${base(f, mode, opts)}
+      <path d="${cup}" fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="${inner}" fill="${fill2}" stroke="none"/>
+      <g fill="none" stroke="${stroke}" stroke-width="1.7" stroke-linecap="round">
+        <path d="M54 58 C54 68 55 78 58 85"/>
+        <path d="M66 58 C66 68 65 78 62 85"/>
+      </g>`;
+  }
+
+  function drawRanunculus(f, mode, opts) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const fill2 = mode === 'ink' ? 'none' : f.petal2;
+    let r1 = ''; for (let i = 0; i < 10; i++) r1 += teardrop(60, 56, 32, 15, i * 36);
+    let r2 = ''; for (let i = 0; i < 8; i++) r2 += teardrop(60, 55, 22, 13, i * 45 + 18);
+    let r3 = ''; for (let i = 0; i < 6; i++) r3 += teardrop(60, 54, 13, 10, i * 60);
+    return `${base(f, mode, opts)}
+      <g fill="${fill}" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round">${r1}</g>
+      <g fill="${fill2}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round">${r2}</g>
+      <g fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round">${r3}</g>
+      <circle cx="60" cy="53" r="4" fill="${mode === 'ink' ? 'none' : f.ink}" stroke="${stroke}" stroke-width="1.2"/>`;
+  }
+
+  function drawLavender(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
@@ -164,19 +202,90 @@
         alt++;
       }
     });
-    return `${leaves(f, mode)}<g>${buds}</g>`;
+    return `${base(f, mode, opts)}<g>${buds}</g>`;
   }
 
-  const DRAWERS = { rose: drawRose, poppy: drawPoppy, anemone: drawAnemone, sunflower: drawSunflower, daisy: drawDaisy, lavender: drawLavender };
+  function drawForgetmenot(f, mode, opts) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const fill2 = mode === 'ink' ? 'none' : f.petal2;
+    const core = mode === 'ink' ? 'none' : (f.core || '#f0be48');
+    const blooms = [
+      { x: 60, y: 40, r: 6, c: fill }, { x: 44, y: 50, r: 5.5, c: fill2 },
+      { x: 76, y: 50, r: 5.5, c: fill2 }, { x: 50, y: 66, r: 6, c: fill },
+      { x: 70, y: 66, r: 5.5, c: fill }, { x: 60, y: 56, r: 6.5, c: fill2 },
+    ];
+    let cluster = '';
+    blooms.forEach(b => {
+      for (let i = 0; i < 5; i++) {
+        const a = i * 72 * Math.PI / 180;
+        cluster += `<circle cx="${(b.x + Math.cos(a) * b.r).toFixed(1)}" cy="${(b.y + Math.sin(a) * b.r).toFixed(1)}" r="${(b.r * 0.72).toFixed(1)}" fill="${b.c}" stroke="${stroke}" stroke-width="1.2"/>`;
+      }
+      cluster += `<circle cx="${b.x}" cy="${b.y}" r="${(b.r * 0.42).toFixed(1)}" fill="${core}" stroke="none"/>`;
+    });
+    return `${base(f, mode, opts)}<g>${cluster}</g>`;
+  }
+
+  const DRAWERS = {
+    rose: drawRose, poppy: drawPoppy, anemone: drawAnemone, sunflower: drawSunflower,
+    daisy: drawDaisy, tulip: drawTulip, ranunculus: drawRanunculus, lavender: drawLavender,
+    forgetmenot: drawForgetmenot,
+  };
+
+  function flowerInner(type, mode, opts) {
+    const f = FLOWERS[type] || FLOWERS.rose;
+    return DRAWERS[f.draw](f, mode, opts);
+  }
 
   function flowerSVG(type, mode = 'color') {
-    const f = FLOWERS[type] || FLOWERS.rose;
-    const inner = DRAWERS[f.draw](f, mode);
-    return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+    return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${flowerInner(type, mode)}</svg>`;
   }
 
-  // A stable flower species for each calendar day, so the uncoloured line-art
-  // already shows a garden's worth of variety before anything is captured.
+  // A tied bouquet gathering a month's captured flowers.
+  function bouquetSVG(types, mode) {
+    if (!types || types.length === 0) {
+      return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+        <g fill="none" stroke="${PENCIL.stroke}" stroke-width="2.5" stroke-linecap="round" opacity="0.8">
+          <path d="M100 200 C100 152 96 112 100 82"/>
+          <path d="M100 132 C86 124 80 134 82 148"/>
+          <path d="M100 122 C114 114 120 124 118 138"/>
+          <circle cx="100" cy="76" r="7"/>
+        </g></svg>`;
+    }
+    const n = Math.min(types.length, 7);
+    const tieX = 100, tieY = 184;
+    let stems = '', heads = '';
+    for (let i = 0; i < n; i++) {
+      const t = n === 1 ? 0.5 : i / (n - 1);
+      const deg = -48 + 96 * t;
+      const a = deg * Math.PI / 180;
+      const hx = tieX + Math.sin(a) * 62;
+      const hy = tieY - Math.cos(a) * 120;
+      stems += `<path d="M${tieX} ${tieY} Q ${(tieX + Math.sin(a) * 22).toFixed(1)} ${tieY - 66} ${hx.toFixed(1)} ${(hy + 16).toFixed(1)}" fill="none" stroke="#7d8a4f" stroke-width="3" stroke-linecap="round"/>`;
+    }
+    const s = 0.52;
+    for (let i = 0; i < n; i++) {
+      const t = n === 1 ? 0.5 : i / (n - 1);
+      const deg = -48 + 96 * t;
+      const a = deg * Math.PI / 180;
+      const hx = tieX + Math.sin(a) * 62;
+      const hy = tieY - Math.cos(a) * 120;
+      heads += `<g transform="translate(${(hx - 60 * s).toFixed(1)} ${(hy - 54 * s).toFixed(1)}) scale(${s})">${flowerInner(types[i], mode, { leaves: false })}</g>`;
+    }
+    const twine = '#c69766', twineDark = '#9a713f';
+    const bow = `<g stroke="${twineDark}" stroke-width="1.6" stroke-linejoin="round">
+      <rect x="93" y="178" width="14" height="18" rx="3" fill="${twine}"/>
+      <path d="M100 184 C85 173 80 193 100 188 Z" fill="${twine}"/>
+      <path d="M100 184 C115 173 120 193 100 188 Z" fill="${twine}"/>
+      <path d="M100 193 C96 203 94 209 91 214" fill="none" stroke-linecap="round"/>
+      <path d="M100 193 C104 203 106 209 109 214" fill="none" stroke-linecap="round"/>
+      <circle cx="100" cy="186" r="2.4" fill="${twineDark}" stroke="none"/>
+    </g>`;
+    return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+      <g>${stems}</g>${bow}<g>${heads}</g></svg>`;
+  }
+
+  // A stable flower species for each calendar day.
   function dayFlowerType(key) {
     const types = Object.keys(FLOWERS);
     let h = 0;
@@ -201,6 +310,7 @@
   let entries = loadEntries();
   let viewDate = new Date();
   viewDate.setDate(1);
+  let currentView = 'month';
   let activeDateKey = null;
   let pendingPhoto = null;
   let selectedFlower = null;
@@ -215,6 +325,8 @@
   const prevBtn = document.getElementById('prevMonth');
   const nextBtn = document.getElementById('nextMonth');
   const todayBtn = document.getElementById('todayBtn');
+  const viewMonthBtn = document.getElementById('viewMonth');
+  const viewYearBtn = document.getElementById('viewYear');
 
   const modalOverlay = document.getElementById('modalOverlay');
   const modalDate = document.getElementById('modalDate');
@@ -241,7 +353,15 @@
     weekdayRow.innerHTML = WEEKDAYS.map(w => `<div>${w}</div>`).join('');
   }
 
+  function render() {
+    if (currentView === 'year') renderYear();
+    else renderCalendar();
+  }
+
   function renderCalendar() {
+    weekdayRow.style.display = '';
+    grid.classList.remove('year-mode');
+
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
     monthLabel.textContent = `${MONTH_NAMES[month]} ${year}`;
@@ -299,6 +419,45 @@
     justSavedKey = null;
   }
 
+  function renderYear() {
+    weekdayRow.style.display = 'none';
+    grid.classList.add('year-mode');
+
+    const year = viewDate.getFullYear();
+    monthLabel.textContent = `${year}`;
+
+    let total = 0;
+    let html = '';
+    for (let mi = 0; mi < 12; mi++) {
+      const prefix = `${year}-${String(mi + 1).padStart(2, '0')}-`;
+      const monthKeys = Object.keys(entries).filter(k => k.indexOf(prefix) === 0).sort();
+      const types = monthKeys.map(k => entries[k].flower).filter(Boolean);
+      total += types.length;
+      const bouquet = bouquetSVG(types.slice(-7), types.length ? 'color' : 'ink');
+      html += `<div class="month-card ${types.length ? 'has-blooms' : ''}" data-month="${mi}" role="button" tabindex="0" aria-label="${MONTH_NAMES[mi]} ${year}, ${types.length} flowers">
+        <div class="bouquet">${bouquet}</div>
+        <span class="month-name">${MONTH_NAMES[mi]}</span>
+        <span class="month-count">${types.length ? types.length + (types.length === 1 ? ' bloom' : ' blooms') : 'empty'}</span>
+      </div>`;
+    }
+
+    grid.innerHTML = html;
+    bloomCountEl.textContent = total > 0
+      ? `${total} flower${total === 1 ? '' : 's'} gathered this year`
+      : 'Your year is ready to bloom';
+
+    grid.querySelectorAll('.month-card').forEach(card => {
+      const go = () => {
+        viewDate = new Date(year, Number(card.dataset.month), 1);
+        setView('month');
+      };
+      card.addEventListener('click', go);
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
+      });
+    });
+  }
+
   function attachTilt(card) {
     const maxTilt = 8;
     card.addEventListener('mousemove', e => {
@@ -307,15 +466,13 @@
       const py = (e.clientY - rect.top) / rect.height - 0.5;
       card.style.transform = `translateY(-3px) rotateX(${(-py * maxTilt).toFixed(2)}deg) rotateY(${(px * maxTilt).toFixed(2)}deg)`;
     });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
   }
 
   function spawnSparkles(card) {
     const layer = document.createElement('div');
     layer.className = 'sparkle-layer';
-    const petalColors = ['#e8a0aa', '#f0be48', '#b9d2dc', '#a98ecd', '#e86a50'];
+    const petalColors = ['#e8a0aa', '#f0be48', '#b9d2dc', '#a98ecd', '#e86a50', '#8fb6e6'];
     const count = 7;
     for (let i = 0; i < count; i++) {
       const s = document.createElement('span');
@@ -337,7 +494,7 @@
   function spawnPetalField() {
     const container = document.getElementById('bgPetals');
     if (!container || prefersReducedMotion) return;
-    const colors = ['#e8a0aa', '#f0be48', '#b9d2dc', '#a98ecd', '#e86a50', '#94a06a'];
+    const colors = ['#e8a0aa', '#f0be48', '#b9d2dc', '#a98ecd', '#e86a50', '#94a06a', '#8fb6e6'];
     const count = 12;
     for (let i = 0; i < count; i++) {
       const p = document.createElement('span');
@@ -487,7 +644,7 @@
     saveEntryBtn.classList.add('saved');
     setTimeout(() => {
       closeModal();
-      renderCalendar();
+      render();
     }, 260);
   });
 
@@ -496,7 +653,7 @@
     delete entries[activeDateKey];
     saveEntries(entries);
     closeModal();
-    renderCalendar();
+    render();
   });
 
   closeModalBtn.addEventListener('click', closeModal);
@@ -507,7 +664,12 @@
     if (e.key === 'Escape' && !modalOverlay.hidden) closeModal();
   });
 
-  function changeMonth(delta) {
+  function stepView(delta) {
+    if (currentView === 'year') {
+      viewDate.setFullYear(viewDate.getFullYear() + delta);
+      renderYear();
+      return;
+    }
     if (prefersReducedMotion) {
       viewDate.setMonth(viewDate.getMonth() + delta);
       renderCalendar();
@@ -525,17 +687,28 @@
     }, 170);
   }
 
-  prevBtn.addEventListener('click', () => changeMonth(-1));
-  nextBtn.addEventListener('click', () => changeMonth(1));
+  function setView(view) {
+    currentView = view;
+    viewMonthBtn.classList.toggle('active', view === 'month');
+    viewYearBtn.classList.toggle('active', view === 'year');
+    viewMonthBtn.setAttribute('aria-selected', view === 'month');
+    viewYearBtn.setAttribute('aria-selected', view === 'year');
+    render();
+  }
+
+  prevBtn.addEventListener('click', () => stepView(-1));
+  nextBtn.addEventListener('click', () => stepView(1));
+  viewMonthBtn.addEventListener('click', () => setView('month'));
+  viewYearBtn.addEventListener('click', () => setView('year'));
   todayBtn.addEventListener('click', () => {
     viewDate = new Date();
     viewDate.setDate(1);
-    renderCalendar();
+    setView('month');
   });
 
   renderWeekdayRow();
   renderFlowerPicker();
   renderMoodPicker();
-  renderCalendar();
+  render();
   spawnPetalField();
 })();
