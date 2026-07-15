@@ -4,17 +4,21 @@
   const STORAGE_KEY = 'flowerJournal.entries';
 
   // Muted-warm botanical palette, echoing hand-painted gouache/watercolor references.
+  // Each flower carries a vivid, contrasting stamp background (Bloomie-style),
+  // so a captured day turns from a pale blank stamp into a colourful one.
   const FLOWERS = {
-    rose:        { label: 'Rose',        petal: '#e8a0aa', petal2: '#f2c2c8', ink: '#bd6d78', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'rose' },
-    poppy:       { label: 'Poppy',       petal: '#e86a50', petal2: '#f28e77', ink: '#b3452f', leaf: '#94a06a', leafInk: '#6d7a46', core: '#3d3a46', draw: 'poppy' },
-    anemone:     { label: 'Anemone',     petal: '#b9d2dc', petal2: '#d7e6ec', ink: '#7995a2', leaf: '#94a06a', leafInk: '#6d7a46', core: '#33324c', draw: 'anemone' },
-    sunflower:   { label: 'Sunflower',   petal: '#f0be48', petal2: '#f7d574', ink: '#cf9528', leaf: '#94a06a', leafInk: '#6d7a46', core: '#7a4e29', draw: 'sunflower' },
-    daisy:       { label: 'Daisy',       petal: '#fffdf7', petal2: '#ffffff', ink: '#d6cbb7', leaf: '#94a06a', leafInk: '#6d7a46', core: '#f0be48', coreInk: '#cf9528', draw: 'daisy' },
-    tulip:       { label: 'Tulip',       petal: '#e8788f', petal2: '#f2a6b6', ink: '#bf5a72', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'tulip' },
-    ranunculus:  { label: 'Ranunculus',  petal: '#ee9a80', petal2: '#f6c1ae', ink: '#cd7157', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'ranunculus' },
-    lavender:    { label: 'Lavender',    petal: '#a98ecd', petal2: '#c4addf', ink: '#7c62a6', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'lavender' },
-    forgetmenot: { label: 'Forget-me-not', petal: '#8fb6e6', petal2: '#b3d0f0', ink: '#5f88bf', core: '#f0be48', leaf: '#94a06a', leafInk: '#6d7a46', draw: 'forgetmenot' },
+    rose:        { label: 'Rose',        petal: '#e8a0aa', petal2: '#f2c2c8', ink: '#bd6d78', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#3d7ff2', draw: 'rose' },
+    poppy:       { label: 'Poppy',       petal: '#e86a50', petal2: '#f28e77', ink: '#b3452f', leaf: '#2f8f6a', leafInk: '#1f6e50', core: '#3d3a46', bg: '#22b3bf', draw: 'poppy' },
+    anemone:     { label: 'Anemone',     petal: '#bcd2dc', petal2: '#dbe9ee', ink: '#5f7d8a', core: '#2a2942', bg: '#f2683d', leaf: '#3f8f5e', leafInk: '#2c6b43', draw: 'anemone' },
+    sunflower:   { label: 'Sunflower',   petal: '#f0be48', petal2: '#f7d574', ink: '#cf9528', leaf: '#3f8f5e', leafInk: '#2c6b43', core: '#7a4e29', bg: '#7a5cf0', draw: 'sunflower' },
+    daisy:       { label: 'Daisy',       petal: '#ffffff', petal2: '#ffffff', ink: '#d9d0e0', leaf: '#3f8f5e', leafInk: '#2c6b43', core: '#f0be48', coreInk: '#cf9528', bg: '#f24b8b', draw: 'daisy' },
+    tulip:       { label: 'Tulip',       petal: '#e8788f', petal2: '#f2a6b6', ink: '#bf5a72', leaf: '#2f8f5e', leafInk: '#1f6e43', bg: '#3fb37a', draw: 'tulip' },
+    ranunculus:  { label: 'Ranunculus',  petal: '#ee9a80', petal2: '#f6c1ae', ink: '#cd7157', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#6c5cf0', draw: 'ranunculus' },
+    lavender:    { label: 'Lavender',    petal: '#a98ecd', petal2: '#c4addf', ink: '#7c62a6', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f5b70f', draw: 'lavender' },
+    forgetmenot: { label: 'Forget-me-not', petal: '#8fb6e6', petal2: '#b3d0f0', ink: '#5f88bf', core: '#f0be48', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#ef5a7a', draw: 'forgetmenot' },
   };
+
+  const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
   const PENCIL = { stroke: '#b0a086', fill: 'none' };
 
@@ -310,7 +314,7 @@
   let entries = loadEntries();
   let viewDate = new Date();
   viewDate.setDate(1);
-  let currentView = 'month';
+  let currentView = 'flat';   // 'flat' | 'ring' | 'year'
   let activeDateKey = null;
   let pendingPhoto = null;
   let selectedFlower = null;
@@ -325,7 +329,8 @@
   const prevBtn = document.getElementById('prevMonth');
   const nextBtn = document.getElementById('nextMonth');
   const todayBtn = document.getElementById('todayBtn');
-  const viewMonthBtn = document.getElementById('viewMonth');
+  const viewFlatBtn = document.getElementById('viewFlat');
+  const viewRingBtn = document.getElementById('viewRing');
   const viewYearBtn = document.getElementById('viewYear');
 
   const modalOverlay = document.getElementById('modalOverlay');
@@ -355,12 +360,30 @@
 
   function render() {
     if (currentView === 'year') renderYear();
-    else renderCalendar();
+    else renderCalendar(currentView);
   }
 
-  function renderCalendar() {
-    weekdayRow.style.display = '';
+  function stampHTML(key, d, isToday) {
+    const entry = entries[key];
+    const type = entry ? entry.flower : dayFlowerType(key);
+    const f = FLOWERS[type] || FLOWERS.rose;
+    const flowerMarkup = flowerSVG(type, entry ? 'color' : 'ink');
+    const bgStyle = entry ? `--stamp-bg:${f.bg};` : '';
+    return `<div class="day-card ${entry ? 'has-entry' : 'is-bud'} ${isToday ? 'is-today' : ''}" data-key="${key}" role="button" tabindex="0" aria-label="${MONTH_NAMES[viewDate.getMonth()]} ${d}${entry ? ', memory captured' : ', empty'}">
+      <div class="stamp" style="${bgStyle}">
+        <div class="stamp-face">
+          <span class="stamp-date">${d}<small>${MONTH_ABBR[viewDate.getMonth()]}</small></span>
+          <div class="day-flower">${flowerMarkup}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderCalendar(arrangement) {
+    const ring = arrangement === 'ring';
+    weekdayRow.style.display = ring ? 'none' : '';
     grid.classList.remove('year-mode');
+    grid.classList.toggle('ring-mode', ring);
 
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -372,51 +395,56 @@
     const todayKey = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
 
     let html = '';
-    for (let i = 0; i < firstDayIndex; i++) {
-      html += `<div class="day-card empty"></div>`;
+    if (!ring) {
+      for (let i = 0; i < firstDayIndex; i++) html += `<div class="day-card empty"></div>`;
     }
 
     let bloomedThisMonth = 0;
     for (let d = 1; d <= daysInMonth; d++) {
       const key = dateKey(year, month, d);
-      const entry = entries[key];
-      const isToday = key === todayKey;
-      if (entry) bloomedThisMonth++;
-
-      const type = entry ? entry.flower : dayFlowerType(key);
-      const flowerMarkup = flowerSVG(type, entry ? 'color' : 'ink');
-      html += `<div class="day-card ${entry ? 'has-entry' : 'is-bud'} ${isToday ? 'is-today' : ''}" data-key="${key}" role="button" tabindex="0" aria-label="${MONTH_NAMES[month]} ${d}${entry ? ', memory captured' : ', empty'}">
-        <span class="day-number">${d}</span>
-        <div class="day-flower">${flowerMarkup}</div>
-      </div>`;
+      if (entries[key]) bloomedThisMonth++;
+      html += stampHTML(key, d, key === todayKey);
     }
 
     grid.innerHTML = html;
     bloomCountEl.textContent = bloomedThisMonth > 0
-      ? `${bloomedThisMonth} flower${bloomedThisMonth === 1 ? '' : 's'} bloomed this month`
-      : 'A page waiting to be coloured in';
+      ? `${bloomedThisMonth} bloom${bloomedThisMonth === 1 ? '' : 's'} this month`
+      : 'a page waiting to bloom';
 
     grid.querySelectorAll('.day-card:not(.empty)').forEach(card => {
       card.addEventListener('click', () => openModal(card.dataset.key));
       card.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          openModal(card.dataset.key);
-        }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(card.dataset.key); }
       });
-
-      const flowerEl = card.querySelector('.day-flower');
-      if (flowerEl) flowerEl.style.setProperty('--sway-delay', `${(Math.random() * 3).toFixed(2)}s`);
-
-      if (!prefersReducedMotion) attachTilt(card);
-
+      if (!ring && !prefersReducedMotion) attachTilt(card);
       if (card.dataset.key === justSavedKey) {
         card.classList.add('just-bloomed');
         spawnSparkles(card);
       }
     });
 
+    if (ring) layoutRing();
     justSavedKey = null;
+  }
+
+  function layoutRing() {
+    const cards = Array.from(grid.querySelectorAll('.day-card'));
+    const n = cards.length;
+    if (!n) return;
+    const rect = grid.getBoundingClientRect();
+    const radius = Math.min(rect.width, rect.height) * 0.40;
+    cards.forEach((card, i) => {
+      // start at top, sweep clockwise around a full ring
+      const angle = -90 + (i / n) * 360;
+      const rad = angle * Math.PI / 180;
+      const x = Math.cos(rad) * radius;
+      const y = Math.sin(rad) * radius;
+      const spin = angle + 90;                 // tangential, tops facing outward
+      card.style.setProperty('--rx', `${x.toFixed(1)}px`);
+      card.style.setProperty('--ry', `${y.toFixed(1)}px`);
+      card.style.setProperty('--spin', `${spin.toFixed(1)}deg`);
+      card.style.setProperty('--i', i);
+    });
   }
 
   function renderYear() {
@@ -449,7 +477,7 @@
     grid.querySelectorAll('.month-card').forEach(card => {
       const go = () => {
         viewDate = new Date(year, Number(card.dataset.month), 1);
-        setView('month');
+        setView('flat');
       };
       card.addEventListener('click', go);
       card.addEventListener('keydown', e => {
@@ -520,7 +548,7 @@
       btn.addEventListener('click', () => {
         selectedFlower = btn.dataset.type;
         updateFlowerPickerSelection();
-        modalFlowerDisplay.innerHTML = flowerSVG(selectedFlower, 'color');
+        modalFlowerDisplay.innerHTML = stampPreviewHTML(selectedFlower);
         modalFlowerDisplay.classList.remove('pulse');
         void modalFlowerDisplay.offsetWidth;
         modalFlowerDisplay.classList.add('pulse');
@@ -553,6 +581,20 @@
     });
   }
 
+  function stampPreviewHTML(type) {
+    const f = FLOWERS[type] || FLOWERS.rose;
+    let dnum = '', mon = '';
+    if (activeDateKey) {
+      const p = activeDateKey.split('-');
+      dnum = String(Number(p[2]));
+      mon = MONTH_ABBR[Number(p[1]) - 1];
+    }
+    return `<div class="stamp" style="--stamp-bg:${f.bg}"><div class="stamp-face">
+      <span class="stamp-date">${dnum}<small>${mon}</small></span>
+      <div class="day-flower">${flowerSVG(type, 'color')}</div>
+    </div></div>`;
+  }
+
   function openModal(key) {
     activeDateKey = key;
     const [y, m, d] = key.split('-').map(Number);
@@ -564,7 +606,7 @@
     selectedMood = entry ? entry.mood : null;
     pendingPhoto = entry ? entry.photo : null;
 
-    modalFlowerDisplay.innerHTML = flowerSVG(selectedFlower, 'color');
+    modalFlowerDisplay.innerHTML = stampPreviewHTML(selectedFlower);
     updateFlowerPickerSelection();
     updateMoodPickerSelection();
 
@@ -670,9 +712,9 @@
       renderYear();
       return;
     }
-    if (prefersReducedMotion) {
+    if (currentView === 'ring' || prefersReducedMotion) {
       viewDate.setMonth(viewDate.getMonth() + delta);
-      renderCalendar();
+      renderCalendar(currentView);
       return;
     }
     const outClass = delta > 0 ? 'slide-out-left' : 'slide-out-right';
@@ -680,7 +722,7 @@
     grid.classList.add(outClass);
     setTimeout(() => {
       viewDate.setMonth(viewDate.getMonth() + delta);
-      renderCalendar();
+      renderCalendar(currentView);
       grid.classList.remove(outClass);
       grid.classList.add(inClass);
       setTimeout(() => grid.classList.remove(inClass), 300);
@@ -689,22 +731,24 @@
 
   function setView(view) {
     currentView = view;
-    viewMonthBtn.classList.toggle('active', view === 'month');
-    viewYearBtn.classList.toggle('active', view === 'year');
-    viewMonthBtn.setAttribute('aria-selected', view === 'month');
-    viewYearBtn.setAttribute('aria-selected', view === 'year');
+    [[viewFlatBtn, 'flat'], [viewRingBtn, 'ring'], [viewYearBtn, 'year']].forEach(([btn, v]) => {
+      btn.classList.toggle('active', view === v);
+      btn.setAttribute('aria-selected', view === v);
+    });
     render();
   }
 
   prevBtn.addEventListener('click', () => stepView(-1));
   nextBtn.addEventListener('click', () => stepView(1));
-  viewMonthBtn.addEventListener('click', () => setView('month'));
+  viewFlatBtn.addEventListener('click', () => setView('flat'));
+  viewRingBtn.addEventListener('click', () => setView('ring'));
   viewYearBtn.addEventListener('click', () => setView('year'));
   todayBtn.addEventListener('click', () => {
     viewDate = new Date();
     viewDate.setDate(1);
-    setView('month');
+    setView(currentView === 'year' ? 'flat' : currentView);
   });
+  window.addEventListener('resize', () => { if (currentView === 'ring') layoutRing(); });
 
   renderWeekdayRow();
   renderFlowerPicker();

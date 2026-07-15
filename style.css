@@ -1,109 +1,63 @@
 @import url('fonts/fonts.css');
 
 :root {
-  --paper: #f6efe1;
-  --paper-2: #efe5d3;
-  --cell: #fffdf6;
-  --cell-warm: #fdf6e9;
-  --ink: #4b3f38;
-  --ink-soft: #9c8c7c;
-  --line: #e4d8c3;
-  --line-soft: #efe6d5;
-  --rose: #d98a94;
-  --rose-deep: #c06d78;
-  --sage: #94a06a;
-  --sage-deep: #6d7a46;
-  --gold: #e0a72a;
-  --shadow: 0 10px 26px rgba(120, 95, 70, 0.14);
-  --shadow-soft: 0 4px 12px rgba(120, 95, 70, 0.08);
+  --page: #efedea;
+  --card: #ffffff;
+  --ink: #2f2b28;
+  --ink-soft: #8b837a;
+  --line: #e3ded6;
+  --accent: #e0587a;
+  --blank: #e7e1d6;
+  --shadow: 0 10px 26px rgba(70, 60, 55, 0.16);
+  --shadow-soft: 0 3px 10px rgba(70, 60, 55, 0.10);
+  --stamp-shadow: 0 4px 12px rgba(70, 60, 55, 0.16);
   --radius: 22px;
 }
 
 * { box-sizing: border-box; }
-
 html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
   font-family: 'Quicksand', sans-serif;
   color: var(--ink);
-  background-color: var(--paper);
-  /* faint bullet-journal dot grid on warm paper */
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(120, 95, 70, 0.10) 1px, transparent 0);
-  background-size: 26px 26px;
+  background: var(--page);
   min-height: 100vh;
-  padding: 40px 16px 72px;
+  padding: 40px 18px 72px;
   overflow-x: hidden;
   position: relative;
 }
 
-/* subtle paper grain overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.5;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-}
+.app { max-width: 940px; margin: 0 auto; position: relative; z-index: 1; }
 
-.app {
-  max-width: 900px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
+.bg-petals { display: none; }   /* keep it clean, gallery-like */
 
-/* Ambient drifting petals */
-.bg-petals {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.bg-petal {
-  position: absolute;
-  top: -40px;
-  opacity: 0.5;
-  animation-name: petalDrift;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  will-change: transform;
-}
-
-.bg-petal svg { width: 100%; height: auto; display: block; }
-
-@keyframes petalDrift {
-  0% { transform: translate(0, -5vh) rotate(0deg); opacity: 0; }
-  10% { opacity: 0.55; }
-  90% { opacity: 0.45; }
-  100% { transform: translate(var(--drift, 40px), 110vh) rotate(400deg); opacity: 0; }
-}
-
-/* Header */
+/* ---- Header / wordmark ---- */
 .hero { text-align: center; margin-bottom: 26px; }
 
 .hero h1 {
-  font-family: 'Caveat', cursive;
-  font-weight: 700;
-  font-size: 4rem;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-optical-sizing: auto;
+  font-size: 3.1rem;
   line-height: 1;
-  margin: 0 0 4px;
-  color: var(--rose-deep);
+  margin: 0 0 8px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
 }
+
+.hero h1::before { content: '❀'; color: var(--accent); font-size: 0.72em; margin-right: 0.32em; vertical-align: 0.06em; }
 
 .tagline {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
 }
 
-/* Month navigation */
+/* ---- Month nav ---- */
 .month-nav {
   display: flex;
   align-items: center;
@@ -115,56 +69,52 @@ body::before {
 .month-label { text-align: center; min-width: 240px; }
 
 .month-label h2 {
-  font-family: 'Caveat', cursive;
-  font-weight: 600;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
   margin: 0;
-  font-size: 2.3rem;
+  font-size: 1.7rem;
   color: var(--ink);
   line-height: 1.1;
 }
 
 .bloom-count {
   display: inline-block;
-  font-size: 0.82rem;
-  color: var(--sage-deep);
-  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
 }
 
 .nav-btn {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1.5px solid var(--line);
-  background: var(--cell);
-  color: var(--rose-deep);
-  font-size: 1.5rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-soft);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, color 0.15s ease;
 }
 
-.nav-btn:hover {
-  transform: translateY(-2px) scale(1.08);
-  background: var(--rose);
-  color: #fff;
-  box-shadow: 0 10px 22px rgba(217, 138, 148, 0.35);
-}
-
+.nav-btn:hover { transform: translateY(-2px) scale(1.08); background: var(--ink); color: #fff; }
 .nav-btn:active { transform: translateY(0) scale(0.94); }
 
-/* View toggle */
+/* ---- View toggle ---- */
 .view-toggle {
   display: flex;
   justify-content: center;
-  gap: 4px;
-  margin: 16px auto 4px;
+  gap: 2px;
+  margin: 18px auto 6px;
   padding: 4px;
-  background: var(--cell);
-  border: 1.5px solid var(--line);
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 999px;
   width: fit-content;
   box-shadow: var(--shadow-soft);
@@ -172,118 +122,41 @@ body::before {
 
 .view-btn {
   font-family: 'Quicksand', sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-soft);
   background: none;
   border: none;
-  padding: 8px 18px;
+  padding: 8px 20px;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-.view-btn:hover { color: var(--rose-deep); }
+.view-btn:hover { color: var(--ink); }
+.view-btn.active { background: var(--ink); color: #fff; }
 
-.view-btn.active {
-  background: var(--rose-deep);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(192, 109, 120, 0.35);
-}
-
-/* Weekday header */
+/* ---- Weekday header ---- */
 .weekday-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin: 22px auto 10px;
+  margin: 20px auto 12px;
   text-align: center;
   color: var(--ink-soft);
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-/* Calendar */
+/* ---- Calendar (flat) ---- */
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 12px;
 }
-
-/* Year-in-bouquets view */
-.calendar-grid.year-mode {
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.month-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 8px 14px;
-  background: var(--cell);
-  border: 1.5px solid var(--line);
-  border-radius: 18px;
-  cursor: pointer;
-  box-shadow: var(--shadow-soft);
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.2s ease;
-  animation: bloomIn 0.4s ease both;
-}
-
-.month-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow);
-  border-color: var(--rose);
-}
-
-.month-card:active { transform: translateY(0) scale(0.97); }
-
-/* washi-tape accent on months that have blooms */
-.month-card.has-blooms::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  width: 46px;
-  height: 17px;
-  transform: translateX(-50%) rotate(-3deg);
-  background: repeating-linear-gradient(45deg, rgba(217, 138, 148, 0.5) 0 6px, rgba(217, 138, 148, 0.28) 6px 12px);
-  border-radius: 2px;
-  box-shadow: 0 2px 4px rgba(120, 90, 70, 0.12);
-}
-
-.bouquet {
-  width: 100%;
-  aspect-ratio: 200 / 220;
-  max-height: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bouquet svg { width: 100%; height: 100%; overflow: visible; }
-
-.month-card.has-blooms .bouquet svg { filter: drop-shadow(0 3px 5px rgba(120, 80, 70, 0.16)); }
-
-.month-name {
-  font-family: 'Caveat', cursive;
-  font-weight: 600;
-  font-size: 1.4rem;
-  color: var(--ink);
-  line-height: 1;
-  margin-top: 4px;
-}
-
-.month-count {
-  font-size: 0.72rem;
-  color: var(--sage-deep);
-  font-weight: 500;
-  margin-top: 2px;
-}
-
-.month-card:not(.has-blooms) .month-count { color: var(--ink-soft); }
 
 .calendar-grid.slide-out-left { animation: slideOutLeft 0.18s ease forwards; }
 .calendar-grid.slide-out-right { animation: slideOutRight 0.18s ease forwards; }
@@ -297,165 +170,200 @@ body::before {
 
 .day-card {
   position: relative;
-  aspect-ratio: 1 / 1;
-  border-radius: 18px;
-  background: var(--cell);
-  border: 1.5px solid var(--line);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.2s ease, background 0.3s ease;
-  box-shadow: var(--shadow-soft);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform-style: preserve-3d;
-  perspective: 500px;
-  will-change: transform;
+  perspective: 600px;
 }
 
-.day-card:hover {
-  box-shadow: var(--shadow);
-  border-color: var(--rose);
-  z-index: 2;
+.day-card.empty { visibility: hidden; pointer-events: none; }
+
+/* ---- Postage stamp ---- */
+.stamp {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  padding: 9px;
+  border-radius: 4px;
+  background:
+    radial-gradient(circle 3.5px at center, var(--page) 96%, transparent 100%) top    center / 12px 12px repeat-x,
+    radial-gradient(circle 3.5px at center, var(--page) 96%, transparent 100%) bottom center / 12px 12px repeat-x,
+    radial-gradient(circle 3.5px at center, var(--page) 96%, transparent 100%) left   center / 12px 12px repeat-y,
+    radial-gradient(circle 3.5px at center, var(--page) 96%, transparent 100%) right  center / 12px 12px repeat-y,
+    #ffffff;
+  filter: drop-shadow(0 3px 8px rgba(70, 60, 55, 0.16));
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.22s ease;
 }
 
-.day-card:active { transform: scale(0.96) !important; }
-
-.day-card.empty {
-  visibility: hidden;
-  pointer-events: none;
+.day-card:hover .stamp {
+  transform: scale(1.06) rotate(-1.5deg);
+  filter: drop-shadow(0 10px 18px rgba(70, 60, 55, 0.24));
 }
 
-.day-card.is-today { border: 2px solid var(--rose-deep); }
-
-.day-card.is-today::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 19px;
-  border: 2px solid var(--rose-deep);
-  animation: todayPulse 2.6s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes todayPulse {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 0; transform: scale(1.1); }
-}
-
-.day-card.has-entry {
-  background: linear-gradient(160deg, var(--cell), var(--cell-warm));
-}
-
-.day-card.is-bud .day-flower { opacity: 0.72; }
-.day-card.is-bud:hover .day-flower { opacity: 1; }
-
-.day-number {
-  position: absolute;
-  top: 6px;
-  left: 9px;
-  font-size: 0.72rem;
-  color: var(--ink-soft);
-  font-weight: 600;
-  z-index: 1;
-}
-
-.day-flower {
-  width: 78%;
-  height: 78%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: bloomIn 0.4s ease, sway 5.5s ease-in-out infinite;
-  animation-delay: 0s, var(--sway-delay, 0s);
-  transform-origin: 50% 82%;
-  transition: opacity 0.25s ease;
-}
-
-.day-card.has-entry .day-flower { width: 92%; height: 92%; }
-
-.day-flower svg {
+.stamp-face {
+  position: relative;
   width: 100%;
   height: 100%;
-  overflow: visible;
+  background: var(--stamp-bg, var(--blank));
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.day-card.has-entry .day-flower svg {
-  filter: drop-shadow(0 3px 5px rgba(120, 80, 70, 0.18));
+.is-bud .stamp-face { background: var(--blank); }
+
+.stamp-date {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  z-index: 2;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 0.82;
+  color: rgba(255, 255, 255, 0.92);
+  display: flex;
+  flex-direction: column;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
 }
 
-.day-card:hover .day-flower {
-  animation-play-state: paused;
-  transform: scale(1.08) rotate(-3deg);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+.stamp-date small {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.46rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-top: 2px;
 }
+
+.is-bud .stamp-date { color: rgba(90, 80, 70, 0.5); text-shadow: none; }
+
+.day-flower {
+  width: 84%;
+  height: 84%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bloomIn 0.4s ease;
+}
+
+.day-flower svg { width: 100%; height: 100%; overflow: visible; }
+.has-entry .day-flower svg { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.16)); }
+
+.is-today .stamp { box-shadow: 0 0 0 2.5px var(--accent); border-radius: 6px; }
 
 @keyframes bloomIn {
   from { transform: scale(0.6); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
 
-@keyframes sway {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
-}
-
-.day-card.just-bloomed .day-flower {
-  animation: bloomBurst 0.75s cubic-bezier(0.22, 1.4, 0.36, 1) both;
-}
-
-@keyframes bloomBurst {
-  0% { transform: scale(0.35) rotate(-30deg); }
-  55% { transform: scale(1.22) rotate(8deg); }
-  75% { transform: scale(0.95) rotate(-4deg); }
+.day-card.just-bloomed .stamp { animation: stampPop 0.7s cubic-bezier(0.22, 1.4, 0.36, 1) both; }
+@keyframes stampPop {
+  0% { transform: scale(0.4) rotate(-14deg); }
+  55% { transform: scale(1.14) rotate(5deg); }
+  75% { transform: scale(0.96) rotate(-2deg); }
   100% { transform: scale(1) rotate(0deg); }
 }
 
-.sparkle-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: visible;
-}
-
-.sparkle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 11px;
-  animation: sparkleOut 0.9s ease-out forwards;
-  will-change: transform, opacity;
-}
-
+.sparkle-layer { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 6; }
+.sparkle { position: absolute; top: 50%; left: 50%; width: 11px; animation: sparkleOut 0.9s ease-out forwards; }
 .sparkle svg { width: 100%; height: auto; display: block; }
-
 @keyframes sparkleOut {
   0% { transform: translate(-50%, -50%) scale(0.3) rotate(0deg); opacity: 1; }
   100% { transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(1) rotate(var(--sr)); opacity: 0; }
 }
 
+/* ---- Ring layout ---- */
+.calendar-grid.ring-mode {
+  display: block;
+  position: relative;
+  height: 660px;
+  margin-top: 6px;
+}
+
+.ring-mode .day-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90px;
+  margin: 0;
+  transform: translate(-50%, -50%) translate(var(--rx, 0), var(--ry, 0)) rotate(var(--spin, 0));
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ring-mode .day-card:hover {
+  z-index: 20;
+  transform: translate(-50%, -50%) translate(var(--rx, 0), var(--ry, 0)) rotate(var(--spin, 0)) scale(1.18);
+}
+
+.ring-mode .day-card:hover .stamp { transform: none; }
+
+/* ---- Year in bouquets ---- */
+.calendar-grid.year-mode { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+.month-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.2s ease;
+  animation: bloomIn 0.4s ease both;
+}
+
+.month-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--accent); }
+.month-card:active { transform: translateY(0) scale(0.97); }
+
+.month-card.has-blooms::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 46px;
+  height: 17px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: repeating-linear-gradient(45deg, rgba(224, 88, 122, 0.5) 0 6px, rgba(224, 88, 122, 0.28) 6px 12px);
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(70, 60, 55, 0.12);
+}
+
+.bouquet { width: 100%; aspect-ratio: 200 / 220; max-height: 130px; display: flex; align-items: center; justify-content: center; }
+.bouquet svg { width: 100%; height: 100%; overflow: visible; }
+.month-card.has-blooms .bouquet svg { filter: drop-shadow(0 3px 5px rgba(70, 60, 55, 0.16)); }
+
+.month-name { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 1.2rem; color: var(--ink); line-height: 1; margin-top: 6px; }
+.month-count { font-size: 0.66rem; color: var(--ink-soft); font-weight: 600; letter-spacing: 0.04em; margin-top: 3px; text-transform: uppercase; }
+
+/* ---- Back to today ---- */
 .today-btn {
   display: block;
   margin: 30px auto 0;
-  background: none;
-  border: 1.5px solid var(--line);
+  background: var(--card);
+  border: 1px solid var(--line);
   color: var(--ink-soft);
   padding: 9px 20px;
   border-radius: 999px;
   cursor: pointer;
   font-family: 'Quicksand', sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: background 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  transition: transform 0.15s ease, color 0.15s ease;
 }
 
-.today-btn:hover { background: var(--cell); color: var(--rose-deep); transform: translateY(-1px); }
+.today-btn:hover { color: var(--ink); transform: translateY(-1px); }
 
-/* Modal */
+/* ---- Modal ---- */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(75, 63, 56, 0.32);
+  background: rgba(47, 43, 40, 0.4);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
@@ -468,35 +376,25 @@ body::before {
 .modal-overlay[hidden] { display: none; }
 .modal-overlay.closing { animation: overlayOut 0.16s ease forwards; }
 .modal-overlay.closing .modal { animation: popOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards; }
-
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes overlayOut { from { opacity: 1; } to { opacity: 0; } }
 
 .modal {
   position: relative;
-  background: var(--cell);
-  background-image: radial-gradient(circle at 1px 1px, rgba(120, 95, 70, 0.06) 1px, transparent 0);
-  background-size: 22px 22px;
+  background: var(--card);
   border-radius: var(--radius);
-  border: 1.5px solid var(--line);
+  border: 1px solid var(--line);
   max-width: 470px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   padding: 30px 28px 24px;
-  box-shadow: 0 24px 60px rgba(80, 55, 42, 0.28);
+  box-shadow: 0 24px 60px rgba(50, 40, 35, 0.3);
   animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes popIn {
-  from { transform: scale(0.85) translateY(16px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
-}
-
-@keyframes popOut {
-  from { transform: scale(1) translateY(0); opacity: 1; }
-  to { transform: scale(0.92) translateY(8px); opacity: 0; }
-}
+@keyframes popIn { from { transform: scale(0.85) translateY(16px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+@keyframes popOut { from { transform: scale(1) translateY(0); opacity: 1; } to { transform: scale(0.92) translateY(8px); opacity: 0; } }
 
 .close-btn {
   position: absolute;
@@ -515,53 +413,35 @@ body::before {
   align-items: center;
   justify-content: center;
   transition: background 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  z-index: 3;
 }
+.close-btn:hover { background: var(--page); color: var(--ink); transform: rotate(90deg); }
 
-.close-btn:hover { background: var(--paper-2); color: var(--rose-deep); transform: rotate(90deg); }
-
-.modal-flower {
-  width: 150px;
-  height: 150px;
-  margin: 4px auto 2px;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  filter: drop-shadow(0 6px 12px rgba(120, 80, 70, 0.24));
-}
-
-.modal-flower svg { width: 100%; height: 100%; overflow: visible; }
-.modal-flower.pulse { animation: bloomBurst 0.65s cubic-bezier(0.22, 1.4, 0.36, 1); }
+.modal-flower { width: 138px; margin: 4px auto 4px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.modal-flower .stamp { width: 100%; }
+.modal-flower.pulse { animation: stampPop 0.6s cubic-bezier(0.22, 1.4, 0.36, 1); }
 
 #modalDate {
   text-align: center;
-  font-family: 'Caveat', cursive;
-  font-weight: 600;
-  font-size: 1.9rem;
-  margin: 0 0 18px;
-  color: var(--rose-deep);
-  line-height: 1.1;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  font-size: 1.4rem;
+  margin: 4px 0 18px;
+  color: var(--ink);
+  line-height: 1.15;
 }
 
 .field-group { margin-bottom: 18px; }
+.field-label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 9px; }
 
-.field-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink-soft);
-  margin-bottom: 9px;
-}
-
-.flower-picker, .mood-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-}
+.flower-picker, .mood-picker { display: flex; flex-wrap: wrap; gap: 9px; }
 
 .pick-btn {
-  width: 56px;
-  height: 56px;
+  width: 54px;
+  height: 54px;
   border-radius: 14px;
   border: 2px solid var(--line);
-  background: var(--cell-warm);
+  background: var(--page);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -572,27 +452,11 @@ body::before {
 }
 
 .pick-btn svg { width: 100%; height: 100%; overflow: visible; }
-
-.pick-btn:hover {
-  transform: translateY(-3px) scale(1.08) rotate(-4deg);
-  box-shadow: 0 6px 14px rgba(120, 90, 70, 0.16);
-  background: #fff;
-}
-
+.pick-btn:hover { transform: translateY(-3px) scale(1.08) rotate(-4deg); box-shadow: 0 6px 14px rgba(70, 60, 55, 0.16); background: #fff; }
 .pick-btn:active { transform: translateY(0) scale(0.92); }
+.pick-btn.selected { border-color: var(--accent); background: #fff; animation: pickPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 4px 12px rgba(224, 88, 122, 0.28); }
 
-.pick-btn.selected {
-  border-color: var(--rose-deep);
-  background: #fff;
-  animation: pickPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 12px rgba(217, 138, 148, 0.3);
-}
-
-@keyframes pickPop {
-  0% { transform: scale(0.8); }
-  60% { transform: scale(1.16); }
-  100% { transform: scale(1); }
-}
+@keyframes pickPop { 0% { transform: scale(0.8); } 60% { transform: scale(1.16); } 100% { transform: scale(1); } }
 
 textarea, input[type="file"] {
   width: 100%;
@@ -602,56 +466,21 @@ textarea, input[type="file"] {
   border: 1.5px solid var(--line);
   padding: 11px 13px;
   resize: vertical;
-  background: var(--cell-warm);
+  background: var(--page);
   color: var(--ink);
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-textarea:focus {
-  outline: none;
-  border-color: var(--rose);
-  box-shadow: 0 0 0 4px rgba(217, 138, 148, 0.22);
-}
-
+textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(224, 88, 122, 0.18); }
 textarea.nudge { animation: nudge 0.4s ease; }
-@keyframes nudge {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
+@keyframes nudge { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-.photo-upload input[type="file"] {
-  border: 1.5px dashed var(--line);
-  cursor: pointer;
-}
-
+.photo-upload input[type="file"] { border: 1.5px dashed var(--line); cursor: pointer; }
 .photo-preview-wrap { margin-top: 10px; text-align: center; }
+.photo-preview-wrap img { max-width: 100%; max-height: 190px; border-radius: 12px; box-shadow: var(--shadow); border: 3px solid #fff; }
+.remove-photo-btn { display: block; margin: 8px auto 0; background: none; border: none; color: var(--accent); font-size: 0.8rem; cursor: pointer; text-decoration: underline; }
 
-.photo-preview-wrap img {
-  max-width: 100%;
-  max-height: 190px;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  border: 3px solid #fff;
-}
-
-.remove-photo-btn {
-  display: block;
-  margin: 8px auto 0;
-  background: none;
-  border: none;
-  color: var(--rose-deep);
-  font-size: 0.8rem;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 22px;
-}
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
 
 .btn {
   font-family: 'Quicksand', sans-serif;
@@ -661,35 +490,17 @@ textarea.nudge { animation: nudge 0.4s ease; }
   border-radius: 999px;
   border: none;
   cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .btn:hover { transform: translateY(-2px); }
 .btn:active { transform: translateY(0) scale(0.96); }
-
-.btn-primary {
-  background: var(--rose-deep);
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(192, 109, 120, 0.4);
-}
-
-.btn-primary:hover { box-shadow: 0 8px 20px rgba(192, 109, 120, 0.5); }
+.btn-primary { background: var(--ink); color: #fff; box-shadow: 0 4px 14px rgba(47, 43, 40, 0.28); }
+.btn-primary:hover { box-shadow: 0 8px 20px rgba(47, 43, 40, 0.34); }
 .btn-primary.saved { animation: savedPulse 0.4s ease; }
-
-@keyframes savedPulse {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.08); background: var(--sage-deep); }
-  100% { transform: scale(1); }
-}
-
-.btn-ghost {
-  background: none;
-  color: var(--ink-soft);
-  border: 1.5px solid var(--line);
-  margin-right: auto;
-}
-
-.btn-ghost:hover { color: var(--rose-deep); border-color: var(--rose); }
+@keyframes savedPulse { 0% { transform: scale(1); } 40% { transform: scale(1.08); background: #3fa06a; } 100% { transform: scale(1); } }
+.btn-ghost { background: none; color: var(--ink-soft); border: 1.5px solid var(--line); margin-right: auto; }
+.btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -698,15 +509,16 @@ textarea.nudge { animation: nudge 0.4s ease; }
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .bg-petals { display: none; }
 }
 
-@media (max-width: 560px) {
-  .hero h1 { font-size: 3rem; }
-  .calendar-grid { gap: 7px; }
+@media (max-width: 600px) {
+  .hero h1 { font-size: 2.4rem; }
+  .calendar-grid { gap: 8px; }
   .calendar-grid.year-mode { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .day-number { font-size: 0.6rem; top: 4px; left: 6px; }
+  .calendar-grid.ring-mode { height: 440px; }
+  .ring-mode .day-card { width: 62px; }
+  .stamp { padding: 6px; }
+  .stamp-date { font-size: 0.8rem; }
   .modal { padding: 24px 18px 20px; }
-  .month-label h2 { font-size: 1.9rem; }
-  .pick-btn { width: 50px; height: 50px; }
+  .pick-btn { width: 48px; height: 48px; }
 }
