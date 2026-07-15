@@ -16,6 +16,13 @@
     ranunculus:  { label: 'Ranunculus',  petal: '#ee9a80', petal2: '#f6c1ae', ink: '#cd7157', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#6c5cf0', draw: 'ranunculus' },
     lavender:    { label: 'Lavender',    petal: '#a98ecd', petal2: '#c4addf', ink: '#7c62a6', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f5b70f', draw: 'lavender' },
     forgetmenot: { label: 'Forget-me-not', petal: '#8fb6e6', petal2: '#b3d0f0', ink: '#5f88bf', core: '#f0be48', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#ef5a7a', draw: 'forgetmenot' },
+    cherryblossom: { label: 'Cherry blossom', petal: '#f7b9cd', petal2: '#fcd6e1', ink: '#d97fa0', core: '#e0587a', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#3d7ff2', draw: 'sakura' },
+    bluebell:    { label: 'Bluebell',    petal: '#7b7fd6', petal2: '#9ca0e4', ink: '#565aa8', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f5b70f', draw: 'bluebell' },
+    marigold:    { label: 'Marigold',    petal: '#f2913a', petal2: '#f8b566', ink: '#cf6f1e', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#22839f', draw: 'ranunculus' },
+    cosmos:      { label: 'Cosmos',      petal: '#f0a6c4', petal2: '#f7c6da', ink: '#d97fa8', leaf: '#3f8f5e', leafInk: '#2c6b43', core: '#f0be48', coreInk: '#cf9528', bg: '#3fb37a', draw: 'daisy' },
+    crocus:      { label: 'Crocus',      petal: '#9b7ad6', petal2: '#b89ee6', ink: '#7856b0', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f5b70f', draw: 'tulip' },
+    dahlia:      { label: 'Dahlia',      petal: '#dd5b9a', petal2: '#ea86b6', ink: '#b23b76', leaf: '#3f8f5e', leafInk: '#2c6b43', core: '#6b2a4a', seed: '#4a1832', bg: '#22b3bf', draw: 'sunflower' },
+    cornflower:  { label: 'Cornflower',  petal: '#6b86d8', petal2: '#93a9e6', ink: '#4a63ad', core: '#2a2f5a', seed: '#1c2044', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f2913a', draw: 'sunflower' },
   };
 
   const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -138,7 +145,45 @@
       <g fill="${fill}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round">${back}</g>
       <g fill="${fill2}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round">${front}</g>
       <circle cx="60" cy="50" r="15" fill="${core}" stroke="${stroke}" stroke-width="1.8"/>
-      ${mode === 'ink' ? '' : stipple(60, 50, 12, 30, '#5c3a1f')}`;
+      ${mode === 'ink' ? '' : stipple(60, 50, 12, 30, f.seed || '#5c3a1f')}`;
+  }
+
+  function drawSakura(f, mode, opts) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const core = mode === 'ink' ? 'none' : (f.core || '#e0587a');
+    let petals = '';
+    for (let i = 0; i < 5; i++) {
+      petals += `<path d="M60 54 C51 48 48 33 53 24 C55 28 57 29 60 32 C63 29 65 28 67 24 C72 33 69 48 60 54 Z" transform="rotate(${i * 72} 60 54)"/>`;
+    }
+    let stamens = '';
+    for (let i = 0; i < 6; i++) {
+      const a = (i * 60 - 90) * Math.PI / 180;
+      const x2 = 60 + Math.cos(a) * 11, y2 = 54 + Math.sin(a) * 11;
+      stamens += `<line x1="60" y1="54" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/><circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="1.5" fill="${core}" stroke="none"/>`;
+    }
+    return `${base(f, mode, opts)}
+      <g fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round">${petals}</g>
+      <g stroke="${core}" stroke-width="1.3" stroke-linecap="round" opacity="${mode === 'ink' ? 0 : 1}">${stamens}</g>
+      <circle cx="60" cy="54" r="4" fill="${core}" stroke="${stroke}" stroke-width="1.2"/>`;
+  }
+
+  function drawBluebell(f, mode, opts) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const fill2 = mode === 'ink' ? 'none' : f.petal2;
+    const stemInk = mode === 'ink' ? PENCIL.stroke : f.leafInk;
+    const stalk = `<path d="M58 114 C58 88 55 58 66 36 C71 27 79 26 84 33" fill="none" stroke="${stemInk}" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M60 92 C50 88 45 92 44 100 C54 100 59 97 60 92 Z" fill="${mode === 'ink' ? 'none' : f.leaf}" stroke="${stemInk}" stroke-width="1.8" stroke-linejoin="round"/>`;
+    const pts = [[82, 33], [73, 43], [64, 55], [58, 70], [56, 86]];
+    let bells = '';
+    pts.forEach(([x, y], i) => {
+      const s = 1 - i * 0.06;
+      bells += teardrop(x, y, 16 * s, 7.5 * s, 172 + (i % 2 ? 9 : -9));
+    });
+    return `${stalk}
+      <g fill="${fill}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round">${bells}</g>
+      <g fill="${fill2}" stroke="none" opacity="${mode === 'ink' ? 0 : 0.5}">${pts.map(([x, y], i) => { const s = (1 - i * 0.06) * 0.5; return teardrop(x, y - 1, 12 * s * 2, 4 * s * 2, 172 + (i % 2 ? 9 : -9)); }).join('')}</g>`;
   }
 
   function drawDaisy(f, mode, opts) {
@@ -233,7 +278,7 @@
   const DRAWERS = {
     rose: drawRose, poppy: drawPoppy, anemone: drawAnemone, sunflower: drawSunflower,
     daisy: drawDaisy, tulip: drawTulip, ranunculus: drawRanunculus, lavender: drawLavender,
-    forgetmenot: drawForgetmenot,
+    forgetmenot: drawForgetmenot, sakura: drawSakura, bluebell: drawBluebell,
   };
 
   function flowerInner(type, mode, opts) {
@@ -243,6 +288,10 @@
 
   function flowerSVG(type, mode = 'color') {
     return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${flowerInner(type, mode)}</svg>`;
+  }
+
+  function flowerHeadSVG(type, mode = 'color') {
+    return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${flowerInner(type, mode, { leaves: false })}</svg>`;
   }
 
   // A tied bouquet gathering a month's captured flowers.
@@ -329,6 +378,7 @@
   const prevBtn = document.getElementById('prevMonth');
   const nextBtn = document.getElementById('nextMonth');
   const todayBtn = document.getElementById('todayBtn');
+  const exportBtn = document.getElementById('exportBtn');
   const viewFlatBtn = document.getElementById('viewFlat');
   const viewRingBtn = document.getElementById('viewRing');
   const viewYearBtn = document.getElementById('viewYear');
@@ -369,11 +419,14 @@
     const f = FLOWERS[type] || FLOWERS.rose;
     const flowerMarkup = flowerSVG(type, entry ? 'color' : 'ink');
     const bgStyle = entry ? `--stamp-bg:${f.bg};` : '';
-    return `<div class="day-card ${entry ? 'has-entry' : 'is-bud'} ${isToday ? 'is-today' : ''}" data-key="${key}" role="button" tabindex="0" aria-label="${MONTH_NAMES[viewDate.getMonth()]} ${d}${entry ? ', memory captured' : ', empty'}">
+    const photoPeek = entry && entry.photo
+      ? `<img class="stamp-photo" src="${entry.photo}" alt="" aria-hidden="true" />` : '';
+    return `<div class="day-card ${entry ? 'has-entry' : 'is-bud'} ${isToday ? 'is-today' : ''}" data-key="${key}" role="button" tabindex="0" aria-label="${MONTH_NAMES[viewDate.getMonth()]} ${d}${entry ? ', memory captured' : ', empty'}${entry && entry.photo ? ', has photo' : ''}">
       <div class="stamp" style="${bgStyle}">
         <div class="stamp-face">
           <span class="stamp-date">${d}<small>${MONTH_ABBR[viewDate.getMonth()]}</small></span>
           <div class="day-flower">${flowerMarkup}</div>
+          ${photoPeek}
         </div>
       </div>
     </div>`;
@@ -449,40 +502,49 @@
 
   function renderYear() {
     weekdayRow.style.display = 'none';
+    grid.classList.remove('ring-mode');
     grid.classList.add('year-mode');
 
     const year = viewDate.getFullYear();
     monthLabel.textContent = `${year}`;
+    const now = new Date();
+    const todayKey = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
+    const wk = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
     let total = 0;
     let html = '';
     for (let mi = 0; mi < 12; mi++) {
-      const prefix = `${year}-${String(mi + 1).padStart(2, '0')}-`;
-      const monthKeys = Object.keys(entries).filter(k => k.indexOf(prefix) === 0).sort();
-      const types = monthKeys.map(k => entries[k].flower).filter(Boolean);
-      total += types.length;
-      const bouquet = bouquetSVG(types.slice(-7), types.length ? 'color' : 'ink');
-      html += `<div class="month-card ${types.length ? 'has-blooms' : ''}" data-month="${mi}" role="button" tabindex="0" aria-label="${MONTH_NAMES[mi]} ${year}, ${types.length} flowers">
-        <div class="bouquet">${bouquet}</div>
-        <span class="month-name">${MONTH_NAMES[mi]}</span>
-        <span class="month-count">${types.length ? types.length + (types.length === 1 ? ' bloom' : ' blooms') : 'empty'}</span>
+      const firstDay = new Date(year, mi, 1).getDay();
+      const dim = new Date(year, mi + 1, 0).getDate();
+      let cells = '';
+      for (let i = 0; i < firstDay; i++) cells += `<div class="yr-day empty"></div>`;
+      for (let d = 1; d <= dim; d++) {
+        const key = dateKey(year, mi, d);
+        const entry = entries[key];
+        if (entry) total++;
+        const type = entry ? entry.flower : dayFlowerType(key);
+        const today = key === todayKey ? ' today' : '';
+        cells += `<div class="yr-day ${entry ? 'filled' : 'bud'}${today}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}${entry ? ' · captured' : ''}">${flowerHeadSVG(type, entry ? 'color' : 'ink')}</div>`;
+      }
+      html += `<div class="yr-month">
+        <h3 class="yr-name" data-month="${mi}" role="button" tabindex="0">${MONTH_NAMES[mi]}</h3>
+        <div class="yr-week">${wk.map(w => `<span>${w}</span>`).join('')}</div>
+        <div class="yr-grid">${cells}</div>
       </div>`;
     }
 
     grid.innerHTML = html;
     bloomCountEl.textContent = total > 0
-      ? `${total} flower${total === 1 ? '' : 's'} gathered this year`
-      : 'Your year is ready to bloom';
+      ? `${total} bloom${total === 1 ? '' : 's'} across ${year}`
+      : `${year} · a year waiting to bloom`;
 
-    grid.querySelectorAll('.month-card').forEach(card => {
-      const go = () => {
-        viewDate = new Date(year, Number(card.dataset.month), 1);
-        setView('flat');
-      };
-      card.addEventListener('click', go);
-      card.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
-      });
+    grid.querySelectorAll('.yr-name').forEach(h => {
+      const go = () => { viewDate = new Date(year, Number(h.dataset.month), 1); setView('flat'); };
+      h.addEventListener('click', go);
+      h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+    grid.querySelectorAll('.yr-day:not(.empty)').forEach(c => {
+      c.addEventListener('click', () => openModal(c.dataset.key));
     });
   }
 
@@ -735,7 +797,100 @@
       btn.classList.toggle('active', view === v);
       btn.setAttribute('aria-selected', view === v);
     });
+    exportBtn.hidden = view !== 'year';
     render();
+  }
+
+  // Compose the whole year-at-a-glance calendar into a downloadable poster.
+  async function exportYear() {
+    const year = viewDate.getFullYear();
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+
+    const cols = 3, rows = 4;
+    const monthW = 300, cell = monthW / 7, gridH = cell * 6, nameH = 44;
+    const monthH = nameH + gridH + 14;
+    const gapX = 30, gapY = 34, padX = 60, headerH = 200, footerH = 64;
+    const W = padX * 2 + cols * monthW + (cols - 1) * gapX;
+    const H = headerH + rows * monthH + (rows - 1) * gapY + footerH;
+
+    const monthXY = mi => {
+      const col = mi % cols, row = Math.floor(mi / cols);
+      return { mx: padX + col * (monthW + gapX), my: headerH + row * (monthH + gapY) };
+    };
+
+    // Build one self-contained SVG of all the little flowers + month cards.
+    let inner = '';
+    for (let mi = 0; mi < 12; mi++) {
+      const { mx, my } = monthXY(mi);
+      inner += `<rect x="${mx}" y="${my}" width="${monthW}" height="${monthH}" rx="16" fill="#ffffff" stroke="#e3ded6"/>`;
+      const firstDay = new Date(year, mi, 1).getDay();
+      const dim = new Date(year, mi + 1, 0).getDate();
+      const gridTop = my + nameH;
+      for (let d = 1; d <= dim; d++) {
+        const key = dateKey(year, mi, d);
+        const entry = entries[key];
+        const type = entry ? entry.flower : dayFlowerType(key);
+        const idx = firstDay + (d - 1);
+        const cc = idx % 7, rr = Math.floor(idx / 7);
+        const s = (cell * 0.86) / 120;
+        const gx = mx + cc * cell + cell / 2 - 60 * s;
+        const gy = gridTop + rr * cell + cell / 2 - 60 * s;
+        const op = entry ? 1 : 0.5;
+        inner += `<g transform="translate(${gx.toFixed(1)} ${gy.toFixed(1)}) scale(${s.toFixed(3)})" opacity="${op}">${flowerInner(type, entry ? 'color' : 'ink', { leaves: false })}</g>`;
+      }
+    }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="#efedea"/>${inner}</svg>`;
+
+    const img = await new Promise(res => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => res(null);
+      im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = W * scale;
+    canvas.height = H * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#efedea';
+    ctx.fillRect(0, 0, W, H);
+    if (img) ctx.drawImage(img, 0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#2f2b28';
+    ctx.font = "82px 'Parisienne', cursive";
+    ctx.fillText('Flower Journal', W / 2, 108);
+    ctx.fillStyle = '#8b837a';
+    ctx.font = "italic 25px 'Fraunces', Georgia, serif";
+    ctx.fillText(`a garden of small moments · ${year}`, W / 2, 150);
+
+    let total = 0;
+    for (let mi = 0; mi < 12; mi++) {
+      const { mx, my } = monthXY(mi);
+      ctx.fillStyle = '#2f2b28';
+      ctx.font = "26px 'Fraunces', Georgia, serif";
+      ctx.fillText(MONTH_NAMES[mi], mx + monthW / 2, my + 30);
+      const prefix = `${year}-${String(mi + 1).padStart(2, '0')}-`;
+      total += Object.keys(entries).filter(k => k.indexOf(prefix) === 0).length;
+    }
+
+    ctx.fillStyle = '#b7ada0';
+    ctx.font = "italic 18px 'Fraunces', Georgia, serif";
+    ctx.fillText(`${total} bloom${total === 1 ? '' : 's'} pressed in my Flower Journal`, W / 2, H - 26);
+
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `flower-journal-${year}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }, 'image/png');
   }
 
   prevBtn.addEventListener('click', () => stepView(-1));
@@ -748,7 +903,37 @@
     viewDate.setDate(1);
     setView(currentView === 'year' ? 'flat' : currentView);
   });
+  exportBtn.addEventListener('click', () => {
+    exportBtn.disabled = true;
+    const label = exportBtn.textContent;
+    exportBtn.textContent = 'Pressing your bouquet…';
+    Promise.resolve(exportYear()).finally(() => {
+      exportBtn.disabled = false;
+      exportBtn.textContent = label;
+    });
+  });
   window.addEventListener('resize', () => { if (currentView === 'ring') layoutRing(); });
+
+  // Cover / intro screen
+  const coverScreen = document.getElementById('coverScreen');
+  const startBtn = document.getElementById('startBtn');
+  const coverArt = document.getElementById('coverArt');
+  if (coverArt) coverArt.innerHTML = bouquetSVG(Object.keys(FLOWERS), 'color');
+  function openJournal() {
+    coverScreen.classList.add('lifting');
+    setTimeout(() => { coverScreen.style.display = 'none'; }, 620);
+  }
+  if (startBtn) startBtn.addEventListener('click', openJournal);
+  // Re-open the cover by clicking the in-app wordmark
+  const heroTitle = document.querySelector('.hero h1');
+  if (heroTitle) {
+    heroTitle.style.cursor = 'pointer';
+    heroTitle.title = 'Close the journal cover';
+    heroTitle.addEventListener('click', () => {
+      coverScreen.style.display = '';
+      coverScreen.classList.remove('lifting');
+    });
+  }
 
   renderWeekdayRow();
   renderFlowerPicker();
