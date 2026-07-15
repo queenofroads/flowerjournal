@@ -4,12 +4,12 @@
   const STORAGE_KEY = 'flowerJournal.entries';
 
   const FLOWERS = {
-    rose: { label: 'Rose', petal: '#e8899c', petalDark: '#d96b83', center: '#f7d3da' },
-    tulip: { label: 'Tulip', petal: '#f2a06b', petalDark: '#e8834a', center: '#fbe0c4' },
-    sunflower: { label: 'Sunflower', petal: '#f2c14e', petalDark: '#e0a72a', center: '#8a5a3b' },
-    daisy: { label: 'Daisy', petal: '#ffffff', petalDark: '#e9e2da', center: '#f2c14e' },
-    lavender: { label: 'Lavender', petal: '#b79fd6', petalDark: '#9c81c2', center: '#e2d6f2' },
-    peony: { label: 'Peony', petal: '#e2739a', petalDark: '#cf5480', center: '#f9d6e2' },
+    rose: { label: 'Rose', outer: '#e63946', inner: '#ff6b81', tip: '#ffb3c1', center: '#ffd9e0', centerDot: '#c9184a' },
+    tulip: { label: 'Tulip', outer: '#f3722c', inner: '#ff9e4f', tip: '#ffd166', center: '#fff1c9', centerDot: '#d95d0e' },
+    sunflower: { label: 'Sunflower', outer: '#f8961e', inner: '#ffd60a', tip: '#ffee88', center: '#6f4518', centerDot: '#a47148' },
+    daisy: { label: 'Daisy', outer: '#e4e6f0', inner: '#ffffff', tip: '#ffffff', center: '#ffd60a', centerDot: '#f8961e' },
+    lavender: { label: 'Lavender', outer: '#7b2cbf', inner: '#9d4edd', tip: '#c77dff', center: '#f0e0ff', centerDot: '#5a189a' },
+    peony: { label: 'Peony', outer: '#d81b60', inner: '#f0508f', tip: '#ff8fb8', center: '#ffe0ec', centerDot: '#a4133c' },
   };
 
   const MOODS = [
@@ -33,15 +33,42 @@
 
   function flowerSVG(type) {
     const f = FLOWERS[type] || FLOWERS.rose;
-    const petals = [0, 60, 120, 180, 240, 300].map(angle => {
-      return `<ellipse cx="50" cy="28" rx="13" ry="20" fill="${f.petal}" stroke="${f.petalDark}" stroke-width="1.5"
-        transform="rotate(${angle} 50 50)"/>`;
+    // gradient ids are per-type so repeated inline SVGs of the same flower share identical defs
+    const gid = `fj-${type}`;
+
+    const outerPetals = [0, 45, 90, 135, 180, 225, 270, 315].map(angle =>
+      `<ellipse cx="50" cy="20" rx="15" ry="26" fill="url(#${gid}-outer)" transform="rotate(${angle} 50 50)"/>`
+    ).join('');
+
+    const innerPetals = [22, 82, 142, 202, 262, 322].map(angle =>
+      `<ellipse cx="50" cy="29" rx="12" ry="19" fill="url(#${gid}-inner)" transform="rotate(${angle} 50 50)"/>`
+    ).join('');
+
+    const centerDots = [0, 60, 120, 180, 240, 300].map(angle => {
+      const rad = (angle * Math.PI) / 180;
+      return `<circle cx="${(50 + Math.cos(rad) * 6).toFixed(1)}" cy="${(50 + Math.sin(rad) * 6).toFixed(1)}" r="2" fill="${f.centerDot}"/>`;
     }).join('');
+
     return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <path d="M50 95 C50 82 50 74 50 66" stroke="#7fa073" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <path d="M50 84 C40 82 35 76 36 70" stroke="#7fa073" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <g>${petals}</g>
-      <circle cx="50" cy="50" r="11" fill="${f.center}"/>
+      <defs>
+        <linearGradient id="${gid}-outer" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${f.tip}"/>
+          <stop offset="100%" stop-color="${f.outer}"/>
+        </linearGradient>
+        <linearGradient id="${gid}-inner" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${f.tip}"/>
+          <stop offset="100%" stop-color="${f.inner}"/>
+        </linearGradient>
+        <radialGradient id="${gid}-core">
+          <stop offset="0%" stop-color="${f.center}"/>
+          <stop offset="100%" stop-color="${f.inner}"/>
+        </radialGradient>
+      </defs>
+      <g>${outerPetals}</g>
+      <g>${innerPetals}</g>
+      <circle cx="50" cy="50" r="13" fill="url(#${gid}-core)"/>
+      ${centerDots}
+      <circle cx="50" cy="50" r="4" fill="${f.centerDot}"/>
     </svg>`;
   }
 
