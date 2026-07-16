@@ -450,7 +450,51 @@
     weekdayRow.innerHTML = WEEKDAYS.map(w => `<div>${w}</div>`).join('');
   }
 
+  // ---- Habit stats: streak, this-month, flower collection ----
+  const statStreak = document.getElementById('statStreak');
+  const streakNum = document.getElementById('streakNum');
+  const monthNum = document.getElementById('monthNum');
+  const collNum = document.getElementById('collNum');
+  const todayCta = document.getElementById('todayCta');
+  const TOTAL_FLOWERS = Object.keys(FLOWERS).length;
+
+  function computeStats() {
+    const keys = Object.keys(entries);
+    const prefix = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-`;
+    const monthCount = keys.filter(k => k.indexOf(prefix) === 0).length;
+    const coll = new Set(keys.map(k => entries[k].flower).filter(Boolean)).size;
+    const has = d => !!entries[dateKey(d.getFullYear(), d.getMonth(), d.getDate())];
+    const cur = new Date(); cur.setHours(0, 0, 0, 0);
+    if (!has(cur)) cur.setDate(cur.getDate() - 1);   // grace: today can still be planted
+    let streak = 0;
+    while (has(cur)) { streak++; cur.setDate(cur.getDate() - 1); }
+    return { streak, monthCount, coll };
+  }
+
+  function setStat(el, val) {
+    if (el.textContent === String(val)) return;
+    el.textContent = val;
+    const card = el.closest('.stat');
+    if (card) { card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse'); }
+  }
+
+  function updateStats() {
+    if (!statStreak) return;
+    const { streak, monthCount, coll } = computeStats();
+    setStat(streakNum, streak);
+    setStat(monthNum, monthCount);
+    collNum.textContent = `${coll}/${TOTAL_FLOWERS}`;
+    statStreak.classList.toggle('active', streak > 0);
+    const now = new Date();
+    const tk = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
+    const done = !!entries[tk];
+    todayCta.className = 'today-cta ' + (done ? 'done' : 'todo');
+    todayCta.textContent = done ? '🌸 today is planted' : '🌱 plant today';
+    todayCta.onclick = () => openModal(tk);
+  }
+
   function render() {
+    updateStats();
     if (currentView === 'year') renderYear();
     else renderCalendar(currentView);
   }
