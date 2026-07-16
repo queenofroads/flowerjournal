@@ -813,46 +813,72 @@
     render();
   }
 
-  // Compose the whole year-at-a-glance calendar into a downloadable poster.
+  // Render the linear wall-planner year view into a downloadable poster.
   async function exportYear() {
     const year = viewDate.getFullYear();
     if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+    const WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-    const cols = 3, rows = 4;
-    const monthW = 300, cell = monthW / 7, gridH = cell * 6, nameH = 44;
-    const monthH = nameH + gridH + 14;
-    const gapX = 30, gapY = 34, padX = 60, headerH = 200, footerH = 64;
-    const W = padX * 2 + cols * monthW + (cols - 1) * gapX;
-    const H = headerH + rows * monthH + (rows - 1) * gapY + footerH;
+    const pad = 50, titleH = 150, footerH = 58;
+    const monthColW = 96, dayW = 46, rulerH = 32, rowH = 54;
+    const plannerW = monthColW + 31 * dayW;
+    const plannerH = rulerH + 12 * rowH;
+    const W = pad * 2 + plannerW;
+    const H = titleH + plannerH + footerH;
+    const x0 = pad, y0 = titleH;
+    const cellX = d => x0 + monthColW + (d - 1) * dayW;
+    const rowY = mi => y0 + rulerH + mi * rowH;
 
-    const monthXY = mi => {
-      const col = mi % cols, row = Math.floor(mi / cols);
-      return { mx: padX + col * (monthW + gapX), my: headerH + row * (monthH + gapY) };
-    };
+    // ---- self-contained SVG: fills, grid, and flowers (no text) ----
+    let shapes = '';
+    shapes += `<rect width="${W}" height="${H}" fill="#efedea"/>`;
+    shapes += `<rect x="${x0}" y="${y0}" width="${plannerW}" height="${plannerH}" rx="16" fill="#fffdf9"/>`;
+    // header + month-column tints
+    shapes += `<rect x="${x0}" y="${y0}" width="${monthColW}" height="${rulerH}" fill="#f7f0e4"/>`;
+    shapes += `<rect x="${x0 + monthColW}" y="${y0}" width="${31 * dayW}" height="${rulerH}" fill="#f7f0e4"/>`;
+    shapes += `<rect x="${x0}" y="${y0 + rulerH}" width="${monthColW}" height="${12 * rowH}" fill="#fdf7ee"/>`;
 
-    // Build one self-contained SVG of all the little flowers + month cards.
-    let inner = '';
+    let flowers = '';
+    let total = 0;
     for (let mi = 0; mi < 12; mi++) {
-      const { mx, my } = monthXY(mi);
-      inner += `<rect x="${mx}" y="${my}" width="${monthW}" height="${monthH}" rx="16" fill="#ffffff" stroke="#e3ded6"/>`;
-      const firstDay = new Date(year, mi, 1).getDay();
       const dim = new Date(year, mi + 1, 0).getDate();
-      const gridTop = my + nameH;
-      for (let d = 1; d <= dim; d++) {
-        const key = dateKey(year, mi, d);
-        const entry = entries[key];
-        const type = entry ? entry.flower : dayFlowerType(key);
-        const idx = firstDay + (d - 1);
-        const cc = idx % 7, rr = Math.floor(idx / 7);
-        const s = (cell * 0.86) / 120;
-        const gx = mx + cc * cell + cell / 2 - 60 * s;
-        const gy = gridTop + rr * cell + cell / 2 - 60 * s;
-        const op = entry ? 1 : 0.5;
-        inner += `<g transform="translate(${gx.toFixed(1)} ${gy.toFixed(1)}) scale(${s.toFixed(3)})" opacity="${op}">${flowerInner(type, entry ? 'color' : 'ink', { leaves: false })}</g>`;
+      for (let d = 1; d <= 31; d++) {
+        const cx = cellX(d), cy = rowY(mi);
+        if (d > dim) {
+          shapes += `<rect x="${cx}" y="${cy}" width="${dayW}" height="${rowH}" fill="#ece6da"/>`;
+          continue;
+        }
+        const dow = new Date(year, mi, d).getDay();
+        if (dow === 0 || dow === 6) shapes += `<rect x="${cx}" y="${cy}" width="${dayW}" height="${rowH}" fill="#faf3e8"/>`;
+        const entry = entries[dateKey(year, mi, d)];
+        if (entry) {
+          total++;
+          const f = FLOWERS[entry.flower] || FLOWERS.rose;
+          shapes += `<rect x="${cx}" y="${cy}" width="${dayW}" height="${rowH}" fill="${f.bg}"/>`;
+          const s = (Math.min(dayW, rowH) * 0.74) / 120;
+          const fx = cx + dayW / 2 - 60 * s;
+          const fy = cy + rowH / 2 - 60 * s;
+          flowers += `<g transform="translate(${fx.toFixed(1)} ${fy.toFixed(1)}) scale(${s.toFixed(3)})">${flowerInner(entry.flower, 'color', { leaves: false })}</g>`;
+        }
       }
     }
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="#efedea"/>${inner}</svg>`;
 
+    // grid lines
+    let lines = `<g stroke="#eae4db" stroke-width="1">`;
+    for (let i = 0; i <= 31; i++) {
+      const x = x0 + monthColW + i * dayW;
+      lines += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + plannerH}"/>`;
+    }
+    for (let r = 0; r <= 12; r++) {
+      const y = y0 + rulerH + r * rowH;
+      lines += `<line x1="${x0}" y1="${y}" x2="${x0 + plannerW}" y2="${y}"/>`;
+    }
+    lines += `</g><g stroke="#e0d8ca" stroke-width="1.5" fill="none">`;
+    lines += `<line x1="${x0 + monthColW}" y1="${y0}" x2="${x0 + monthColW}" y2="${y0 + plannerH}"/>`;
+    lines += `<line x1="${x0}" y1="${y0 + rulerH}" x2="${x0 + plannerW}" y2="${y0 + rulerH}"/>`;
+    lines += `<rect x="${x0}" y="${y0}" width="${plannerW}" height="${plannerH}" rx="16"/></g>`;
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${shapes}${flowers}${lines}</svg>`;
     const img = await new Promise(res => {
       const im = new Image();
       im.onload = () => res(im);
@@ -870,27 +896,50 @@
     ctx.fillRect(0, 0, W, H);
     if (img) ctx.drawImage(img, 0, 0, W, H);
 
+    // ---- text (uses the loaded fonts) ----
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = '#2f2b28';
-    ctx.font = "82px 'Parisienne', cursive";
-    ctx.fillText('Flower Journal', W / 2, 108);
+    ctx.font = "72px 'Parisienne', cursive";
+    ctx.fillText('Flower Journal', W / 2, 82);
     ctx.fillStyle = '#8b837a';
-    ctx.font = "italic 25px 'Fraunces', Georgia, serif";
-    ctx.fillText(`a garden of small moments · ${year}`, W / 2, 150);
+    ctx.font = "italic 23px 'Fraunces', Georgia, serif";
+    ctx.fillText(`a garden of small moments · ${year}`, W / 2, 118);
 
-    let total = 0;
+    ctx.textBaseline = 'middle';
+    // ruler day numbers
+    ctx.fillStyle = '#8b837a';
+    ctx.font = "600 14px 'Fraunces', Georgia, serif";
+    for (let d = 1; d <= 31; d++) ctx.fillText(String(d), cellX(d) + dayW / 2, y0 + rulerH / 2 + 1);
+    // month labels
+    ctx.fillStyle = '#c06d78';
+    ctx.font = "600 22px 'Fraunces', Georgia, serif";
+    for (let mi = 0; mi < 12; mi++) ctx.fillText(MONTH_ABBR[mi], x0 + monthColW / 2, rowY(mi) + rowH / 2 + 1);
+
+    // per-cell day number + weekday
+    ctx.textBaseline = 'top';
     for (let mi = 0; mi < 12; mi++) {
-      const { mx, my } = monthXY(mi);
-      ctx.fillStyle = '#2f2b28';
-      ctx.font = "26px 'Fraunces', Georgia, serif";
-      ctx.fillText(MONTH_NAMES[mi], mx + monthW / 2, my + 30);
-      const prefix = `${year}-${String(mi + 1).padStart(2, '0')}-`;
-      total += Object.keys(entries).filter(k => k.indexOf(prefix) === 0).length;
+      const dim = new Date(year, mi + 1, 0).getDate();
+      for (let d = 1; d <= dim; d++) {
+        const cx = cellX(d), cy = rowY(mi);
+        const dow = new Date(year, mi, d).getDay();
+        const filled = !!entries[dateKey(year, mi, d)];
+        ctx.font = "700 10px 'Quicksand', sans-serif";
+        ctx.textAlign = 'left';
+        ctx.fillStyle = filled ? 'rgba(255,255,255,0.92)' : '#9c8c7c';
+        ctx.fillText(String(d), cx + 4, cy + 4);
+        ctx.textAlign = 'right';
+        ctx.font = "700 8px 'Quicksand', sans-serif";
+        ctx.fillStyle = filled ? 'rgba(255,255,255,0.6)' : '#c3b7a6';
+        ctx.fillText(WD[dow], cx + dayW - 4, cy + 4);
+      }
     }
 
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = '#b7ada0';
-    ctx.font = "italic 18px 'Fraunces', Georgia, serif";
-    ctx.fillText(`${total} bloom${total === 1 ? '' : 's'} pressed in my Flower Journal`, W / 2, H - 26);
+    ctx.font = "italic 17px 'Fraunces', Georgia, serif";
+    ctx.fillText(`${total} bloom${total === 1 ? '' : 's'} pressed in my Flower Journal`, W / 2, H - 22);
 
     canvas.toBlob(blob => {
       if (!blob) return;
