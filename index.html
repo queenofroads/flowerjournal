@@ -41,29 +41,52 @@
     </div>
   </div>
 
-  <!-- Cover / intro : a diary that opens -->
+  <!-- Cover / intro : a diary you turn through -->
   <div id="coverScreen" class="cover">
     <div class="book-stage">
-      <div class="book">
-        <div class="book-page" aria-hidden="true">
-          <div class="book-page-inner">
+      <div class="book" id="book">
+        <!-- the journal awaits beneath the last page -->
+        <div class="book-base" aria-hidden="true">
+          <div class="base-inner">
             <div class="page-flower" id="coverPageArt"></div>
-            <p class="page-hello">Dear diary,</p>
-            <p class="page-sub">let's begin.</p>
+            <p class="page-hello">your journal</p>
+            <p class="page-sub">awaits…</p>
           </div>
         </div>
-        <div class="book-cover" id="bookCover">
-          <span class="book-spine-edge" aria-hidden="true"></span>
-          <div class="cover-embroidery" id="coverEmbroidery" aria-hidden="true"></div>
-          <div class="cover-center">
-            <h1 class="cover-title">Flower Journal</h1>
-            <p class="cover-tagline">flowers will bloom</p>
+
+        <!-- second leaf: the handwritten welcome page -->
+        <div class="leaf" id="leafWelcome">
+          <div class="face front welcome-face">
+            <p class="w-date" id="welcomeDate"></p>
+            <p class="w-hello">Dear diary,</p>
+            <p class="w-note">here's a little garden of days.<br>open one, keep a memory,<br>and watch it bloom.</p>
+            <div class="w-flower" id="welcomeFlower" aria-hidden="true"></div>
+            <p class="turn-cue">turn the page&nbsp;→</p>
           </div>
-          <span class="cover-year" id="coverYear"></span>
-          <span class="cover-ribbon" aria-hidden="true"></span>
+          <div class="face back" aria-hidden="true"></div>
+        </div>
+
+        <!-- first leaf: the front cover -->
+        <div class="leaf" id="leafCover">
+          <div class="face front cover-face">
+            <span class="book-spine-edge" aria-hidden="true"></span>
+            <div class="cover-embroidery" id="coverEmbroidery" aria-hidden="true"></div>
+            <div class="cover-center">
+              <h1 class="cover-title">Flower Journal</h1>
+              <p class="cover-tagline">flowers will bloom</p>
+            </div>
+            <span class="cover-year" id="coverYear"></span>
+            <span class="cover-ribbon" aria-hidden="true"></span>
+          </div>
+          <div class="face back cover-inside" aria-hidden="true">
+            <p class="inside-note">Flower Journal</p>
+            <p class="inside-sub" id="insideYear"></p>
+          </div>
         </div>
       </div>
+
       <button id="startBtn" class="cover-btn">Open the journal</button>
+      <p class="turn-hint" id="turnHint"></p>
     </div>
   </div>
 

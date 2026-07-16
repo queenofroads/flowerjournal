@@ -445,7 +445,7 @@ body {
 .footer-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 30px; }
 .footer-actions .today-btn { margin: 0; }
 
-/* ---- Cover : a diary that opens ---- */
+/* ---- Cover : a diary you turn through ---- */
 .cover {
   position: fixed;
   inset: 0;
@@ -464,8 +464,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 26px;
-  perspective: 2200px;
+  gap: 22px;
+  perspective: 2400px;
   animation: coverRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -479,74 +479,101 @@ body {
   width: min(340px, 80vw);
   aspect-ratio: 3 / 4;
   transform-style: preserve-3d;
+  cursor: pointer;
 }
 
-/* first inside page, revealed as the cover swings open */
-.book-page {
+/* the last page you reach — the journal awaits beneath */
+.book-base {
   position: absolute;
   inset: 0;
-  background: linear-gradient(#fffdf8, #faf3e6);
+  z-index: 0;
   border-radius: 6px 12px 12px 6px;
-  box-shadow: inset 10px 0 18px rgba(120, 90, 70, 0.08), 0 14px 32px rgba(70, 60, 55, 0.18);
+  background: linear-gradient(#fffdf8, #f7f0e2);
+  box-shadow: inset 12px 0 22px rgba(120, 90, 70, 0.10), 0 16px 34px rgba(70, 60, 55, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
-
-.book-page-inner { text-align: center; padding: 20px; }
-.page-flower { width: 118px; height: 118px; margin: 0 auto 4px; }
+.base-inner { text-align: center; padding: 20px; opacity: 0.92; }
+.page-flower { width: 96px; height: 96px; margin: 0 auto 6px; }
 .page-flower svg { width: 100%; height: 100%; overflow: visible; }
-.page-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 2.1rem; color: var(--ink); margin: 0; }
-.page-sub { font-family: 'Caveat', cursive; font-size: 1.35rem; color: var(--ink-soft); margin: 0; }
+.page-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.9rem; color: var(--ink); margin: 0; }
+.page-sub { font-family: 'Caveat', cursive; font-size: 1.3rem; color: var(--ink-soft); margin: 0; }
 
-/* the diary's front cover */
-.book-cover {
+/* a turnable leaf (cover, then welcome page) */
+.leaf {
   position: absolute;
   inset: 0;
-  z-index: 2;
   transform-origin: left center;
-  transform: rotateY(0deg);
-  transition: transform 1.05s cubic-bezier(0.62, 0.02, 0.2, 1), box-shadow 1.05s ease;
+  transform-style: preserve-3d;
+  transition: transform 0.95s cubic-bezier(0.42, 0.04, 0.22, 1);
+  will-change: transform;
+}
+.leaf.turned { transform: rotateY(-179deg); }
+
+.face {
+  position: absolute;
+  inset: 0;
   backface-visibility: hidden;
-  border-radius: 6px 14px 14px 6px;
+  -webkit-backface-visibility: hidden;
+  border-radius: 6px 12px 12px 6px;
   overflow: hidden;
-  /* woven wine-coloured cloth */
+}
+.face.back { transform: rotateY(180deg); }
+
+/* soft shadow near the spine + a glare that sweeps while turning */
+.face::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent 14%);
+}
+.face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7;
+  background: linear-gradient(105deg, rgba(255, 255, 255, 0.22), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.leaf.turning .face::after { opacity: 1; }
+
+/* front of the cover — woven wine cloth */
+.cover-face {
+  box-shadow: 0 16px 40px rgba(50, 20, 30, 0.4);
   background:
     repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.10) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.09) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 4px),
     linear-gradient(150deg, #7c2440 0%, #661a33 55%, #56142b 100%);
-  box-shadow: 0 18px 40px rgba(50, 20, 30, 0.4);
 }
 
-.book-cover::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 40%);
-  pointer-events: none;
-  z-index: 3;
-}
-
-.cover.opening .book-cover {
-  transform: rotateY(-162deg);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+/* cream pages: inside of the cover, and the welcome leaf */
+.cover-inside, .welcome-face {
+  background: linear-gradient(#fffdf8, #f7f0e2);
+  box-shadow: 0 14px 34px rgba(70, 60, 55, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 26px;
 }
 
 .book-spine-edge {
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 18px;
+  z-index: 5;
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.06) 60%, rgba(255, 255, 255, 0.05));
-  z-index: 4;
 }
 
-.cover-embroidery {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
+.cover-embroidery { position: absolute; inset: 0; z-index: 1; }
 .cover-embroidery svg { width: 100%; height: 100%; display: block; }
 
 .cover-center {
@@ -563,10 +590,8 @@ body {
 .cover-center::before {
   content: '';
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 78%;
-  height: 34%;
+  left: 50%; top: 50%;
+  width: 78%; height: 34%;
   transform: translate(-50%, -50%);
   background: radial-gradient(ellipse at center, rgba(60, 16, 32, 0.72) 0%, rgba(60, 16, 32, 0.32) 45%, transparent 72%);
   z-index: -1;
@@ -581,7 +606,6 @@ body {
   color: #fdeef2;
   text-shadow: 0 1px 2px rgba(30, 8, 16, 0.6), 0 0 14px rgba(30, 8, 16, 0.4);
 }
-
 .cover-tagline {
   font-family: 'Caveat', cursive;
   font-weight: 700;
@@ -590,7 +614,6 @@ body {
   margin: 6px 0 0;
   text-shadow: 0 1px 3px rgba(30, 8, 16, 0.55);
 }
-
 .cover-year {
   position: absolute;
   bottom: 16px;
@@ -603,26 +626,44 @@ body {
   color: rgba(253, 238, 242, 0.75);
   text-shadow: 0 1px 3px rgba(30, 8, 16, 0.5);
 }
-
 .cover-ribbon {
   position: absolute;
   top: -2px;
   right: 40px;
   width: 15px;
   height: 66px;
+  z-index: 5;
   background: linear-gradient(#dd5069, #b23350);
   box-shadow: 0 4px 7px rgba(0, 0, 0, 0.28);
-  z-index: 5;
 }
 .cover-ribbon::after {
   content: '';
   position: absolute;
-  bottom: -8px;
-  left: 0;
+  bottom: -8px; left: 0;
   border-left: 7.5px solid transparent;
   border-right: 7.5px solid transparent;
   border-top: 9px solid #b23350;
 }
+
+/* inside-of-cover text (back face of the cover leaf) */
+.inside-note { font-family: 'Parisienne', cursive; font-size: 2.2rem; color: #b06e79; margin: 0; }
+.inside-sub { font-family: 'Fraunces', Georgia, serif; font-style: italic; color: var(--ink-soft); font-size: 0.9rem; margin: 6px 0 0; }
+
+/* the welcome (Dear diary) page */
+.w-date { font-family: 'Caveat', cursive; font-size: 1.15rem; color: var(--ink-soft); margin: 0 0 8px; }
+.w-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 2.3rem; color: var(--ink); margin: 0; }
+.w-note { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 1.02rem; line-height: 1.7; color: #6b6158; margin: 14px 0 12px; }
+.w-flower { width: 66px; height: 66px; margin: 2px auto 6px; }
+.w-flower svg { width: 100%; height: 100%; overflow: visible; }
+.turn-cue {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--accent);
+  margin: 8px 0 0;
+  animation: cueNudge 1.8s ease-in-out infinite;
+}
+@keyframes cueNudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
 
 .cover-btn {
   font-family: 'Quicksand', sans-serif;
@@ -638,10 +679,12 @@ body {
   box-shadow: 0 6px 18px rgba(47, 43, 40, 0.28);
   transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, opacity 0.3s ease;
 }
-
 .cover-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 24px rgba(47, 43, 40, 0.34); }
 .cover-btn:active { transform: translateY(0) scale(0.97); }
-.cover.opening .cover-btn { opacity: 0; transform: translateY(10px); pointer-events: none; }
+.cover-btn.gone { opacity: 0; transform: translateY(10px); pointer-events: none; }
+
+.turn-hint { font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.25rem; color: var(--ink-soft); margin: 0; min-height: 1.2em; transition: opacity 0.3s ease; }
+.turn-hint.gone { opacity: 0; }
 
 /* ---- Modal ---- */
 .modal-overlay {

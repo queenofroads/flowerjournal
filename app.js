@@ -1017,36 +1017,77 @@
   });
   window.addEventListener('resize', () => { if (currentView === 'ring') layoutRing(); });
 
-  // Cover / intro screen — a diary that opens
+  // Cover / intro screen — a diary you turn through, page by page
   const coverScreen = document.getElementById('coverScreen');
+  const book = document.getElementById('book');
   const startBtn = document.getElementById('startBtn');
+  const turnHint = document.getElementById('turnHint');
+  const leafCover = document.getElementById('leafCover');
+  const leafWelcome = document.getElementById('leafWelcome');
   const coverEmbroidery = document.getElementById('coverEmbroidery');
   const coverPageArt = document.getElementById('coverPageArt');
+  const welcomeFlower = document.getElementById('welcomeFlower');
   const coverYear = document.getElementById('coverYear');
+  const insideYear = document.getElementById('insideYear');
+
   if (coverEmbroidery) coverEmbroidery.innerHTML = embroideryCoverSVG();
   if (coverPageArt) coverPageArt.innerHTML = flowerHeadSVG('cherryblossom', 'color');
+  if (welcomeFlower) welcomeFlower.innerHTML = flowerHeadSVG('rose', 'color');
   if (coverYear) coverYear.textContent = String(new Date().getFullYear());
+  if (insideYear) insideYear.textContent = `a garden of small moments · ${new Date().getFullYear()}`;
+  const welcomeDate = document.getElementById('welcomeDate');
+  if (welcomeDate) welcomeDate.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  if (leafCover) leafCover.style.zIndex = 3;
+  if (leafWelcome) leafWelcome.style.zIndex = 2;
 
-  let coverTimers = [];
-  function openJournal() {
-    coverTimers.forEach(clearTimeout);
-    coverScreen.classList.add('opening');          // front cover swings open
-    coverTimers = [
-      setTimeout(() => coverScreen.classList.add('lifting'), 950),  // then the page fades away
-      setTimeout(() => { coverScreen.style.display = 'none'; }, 1520),
-    ];
+  const bookLeaves = [leafCover, leafWelcome];   // turned in this order
+  const HINTS = ['tap the cover to open', 'now turn the page', ''];
+  let turnStep = 0;
+  let turning = false;
+
+  function refreshHint() {
+    if (!turnHint) return;
+    turnHint.textContent = HINTS[Math.min(turnStep, HINTS.length - 1)] || '';
+    turnHint.classList.toggle('gone', !turnHint.textContent);
   }
-  if (startBtn) startBtn.addEventListener('click', openJournal);
-  // Re-open the cover by clicking the in-app wordmark
+  refreshHint();
+
+  function turnPage() {
+    if (turning || turnStep >= bookLeaves.length) return;
+    const leaf = bookLeaves[turnStep];
+    turning = true;
+    if (startBtn && turnStep === 0) startBtn.classList.add('gone');
+    leaf.classList.add('turning', 'turned');
+    leaf.style.zIndex = 1;                     // drop behind the page underneath
+    turnStep++;
+    refreshHint();
+    setTimeout(() => { leaf.classList.remove('turning'); turning = false; }, 980);
+    if (turnStep >= bookLeaves.length) {
+      setTimeout(enterJournal, 700);           // last page turned → step inside
+    }
+  }
+
+  function enterJournal() {
+    coverScreen.classList.add('lifting');
+    setTimeout(() => { coverScreen.style.display = 'none'; }, 600);
+  }
+
+  if (startBtn) startBtn.addEventListener('click', e => { e.stopPropagation(); turnPage(); });
+  if (book) book.addEventListener('click', turnPage);
+
+  // Re-open the diary (from the closed cover) by clicking the in-app wordmark
   const heroTitle = document.querySelector('.hero h1');
   if (heroTitle) {
     heroTitle.style.cursor = 'pointer';
     heroTitle.title = 'Close the journal';
     heroTitle.addEventListener('click', () => {
-      coverTimers.forEach(clearTimeout);
+      bookLeaves.forEach((lf, i) => { lf.classList.remove('turned', 'turning'); lf.style.zIndex = 3 - i; });
+      turnStep = 0;
+      turning = false;
+      if (startBtn) startBtn.classList.remove('gone');
+      refreshHint();
       coverScreen.style.display = '';
-      // reset to closed on the next frame so the swing can replay
-      requestAnimationFrame(() => coverScreen.classList.remove('opening', 'lifting'));
+      requestAnimationFrame(() => coverScreen.classList.remove('lifting'));
     });
   }
 
