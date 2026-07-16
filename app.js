@@ -833,16 +833,17 @@
       renderCalendar(currentView);
       return;
     }
-    const outClass = delta > 0 ? 'slide-out-left' : 'slide-out-right';
-    const inClass = delta > 0 ? 'slide-in-right' : 'slide-in-left';
+    const outClass = delta > 0 ? 'page-out-next' : 'page-out-prev';
+    const inClass = delta > 0 ? 'page-in-next' : 'page-in-prev';
+    grid.style.transformOrigin = delta > 0 ? 'left center' : 'right center';
     grid.classList.add(outClass);
     setTimeout(() => {
       viewDate.setMonth(viewDate.getMonth() + delta);
       renderCalendar(currentView);
       grid.classList.remove(outClass);
       grid.classList.add(inClass);
-      setTimeout(() => grid.classList.remove(inClass), 300);
-    }, 170);
+      setTimeout(() => { grid.classList.remove(inClass); grid.style.transformOrigin = ''; }, 380);
+    }, 300);
   }
 
   function setView(view) {

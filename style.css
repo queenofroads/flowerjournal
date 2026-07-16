@@ -184,15 +184,33 @@ body {
   gap: 12px;
 }
 
-.calendar-grid.slide-out-left { animation: slideOutLeft 0.18s ease forwards; }
-.calendar-grid.slide-out-right { animation: slideOutRight 0.18s ease forwards; }
-.calendar-grid.slide-in-left { animation: slideInLeft 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.calendar-grid.slide-in-right { animation: slideInRight 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* month change = a page turn */
+.calendar-grid.page-out-next,
+.calendar-grid.page-out-prev,
+.calendar-grid.page-in-next,
+.calendar-grid.page-in-prev { backface-visibility: hidden; }
 
-@keyframes slideOutLeft { to { transform: translateX(-24px); opacity: 0; } }
-@keyframes slideOutRight { to { transform: translateX(24px); opacity: 0; } }
-@keyframes slideInLeft { from { transform: translateX(-24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes slideInRight { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.calendar-grid.page-out-next { animation: pageOutNext 0.3s ease-in forwards; }
+.calendar-grid.page-in-next { animation: pageInNext 0.36s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.calendar-grid.page-out-prev { animation: pageOutPrev 0.3s ease-in forwards; }
+.calendar-grid.page-in-prev { animation: pageInPrev 0.36s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+@keyframes pageOutNext {
+  from { transform: perspective(1600px) rotateY(0deg); }
+  to { transform: perspective(1600px) rotateY(-105deg); opacity: 0.3; }
+}
+@keyframes pageInNext {
+  from { transform: perspective(1600px) rotateY(105deg); opacity: 0.3; }
+  to { transform: perspective(1600px) rotateY(0deg); opacity: 1; }
+}
+@keyframes pageOutPrev {
+  from { transform: perspective(1600px) rotateY(0deg); }
+  to { transform: perspective(1600px) rotateY(105deg); opacity: 0.3; }
+}
+@keyframes pageInPrev {
+  from { transform: perspective(1600px) rotateY(-105deg); opacity: 0.3; }
+  to { transform: perspective(1600px) rotateY(0deg); opacity: 1; }
+}
 
 .day-card {
   position: relative;
