@@ -509,41 +509,53 @@
     monthLabel.textContent = `${year}`;
     const now = new Date();
     const todayKey = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
-    const wk = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+    // top ruler of day numbers 1..31
+    let ruler = `<div class="yp-corner"></div>`;
+    for (let d = 1; d <= 31; d++) ruler += `<div class="yp-head">${d}</div>`;
 
     let total = 0;
-    let html = '';
+    let body = '';
     for (let mi = 0; mi < 12; mi++) {
-      const firstDay = new Date(year, mi, 1).getDay();
       const dim = new Date(year, mi + 1, 0).getDate();
-      let cells = '';
-      for (let i = 0; i < firstDay; i++) cells += `<div class="yr-day empty"></div>`;
-      for (let d = 1; d <= dim; d++) {
+      body += `<div class="yp-month" data-month="${mi}" role="button" tabindex="0">${MONTH_ABBR[mi]}</div>`;
+      for (let d = 1; d <= 31; d++) {
+        if (d > dim) { body += `<div class="yp-cell void"></div>`; continue; }
         const key = dateKey(year, mi, d);
         const entry = entries[key];
-        if (entry) total++;
-        const type = entry ? entry.flower : dayFlowerType(key);
+        const dow = new Date(year, mi, d).getDay();
+        const weekend = (dow === 0 || dow === 6) ? ' weekend' : '';
         const today = key === todayKey ? ' today' : '';
-        cells += `<div class="yr-day ${entry ? 'filled' : 'bud'}${today}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}${entry ? ' · captured' : ''}">${flowerHeadSVG(type, entry ? 'color' : 'ink')}</div>`;
+        if (entry) {
+          total++;
+          const f = FLOWERS[entry.flower] || FLOWERS.rose;
+          const note = (entry.text || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+          body += `<div class="yp-cell filled${weekend}${today}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' — ' + note : ''}">
+            <span class="yp-dnum">${d}</span>
+            <span class="yp-wd">${WD[dow]}</span>
+            <div class="yp-fl">${flowerHeadSVG(entry.flower, 'color')}</div>
+          </div>`;
+        } else {
+          body += `<div class="yp-cell${weekend}${today}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}">
+            <span class="yp-dnum">${d}</span>
+            <span class="yp-wd">${WD[dow]}</span>
+          </div>`;
+        }
       }
-      html += `<div class="yr-month">
-        <h3 class="yr-name" data-month="${mi}" role="button" tabindex="0">${MONTH_NAMES[mi]}</h3>
-        <div class="yr-week">${wk.map(w => `<span>${w}</span>`).join('')}</div>
-        <div class="yr-grid">${cells}</div>
-      </div>`;
     }
 
-    grid.innerHTML = html;
+    grid.innerHTML = `<div class="year-planner">${ruler}${body}</div>`;
     bloomCountEl.textContent = total > 0
       ? `${total} bloom${total === 1 ? '' : 's'} across ${year}`
       : `${year} · a year waiting to bloom`;
 
-    grid.querySelectorAll('.yr-name').forEach(h => {
+    grid.querySelectorAll('.yp-month').forEach(h => {
       const go = () => { viewDate = new Date(year, Number(h.dataset.month), 1); setView('flat'); };
       h.addEventListener('click', go);
       h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
     });
-    grid.querySelectorAll('.yr-day:not(.empty)').forEach(c => {
+    grid.querySelectorAll('.yp-cell[data-key]').forEach(c => {
       c.addEventListener('click', () => openModal(c.dataset.key));
     });
   }
