@@ -294,65 +294,44 @@
     return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${flowerInner(type, mode, { leaves: false })}</svg>`;
   }
 
-  // Hand-stitched cherry-blossom embroidery for the diary cover.
+  // Hand-stitched cherry-blossom wreath for the diary cover.
   function embroideryCoverSVG() {
     const W = 300, H = 400;
-    const branchCol = '#3a1420';
     const white = '#fdeff3', pink = '#f3c2d1', budDeep = '#cf5b7e', knot = '#f2d59a';
+    const leafCol = '#6f9a62', leafInk = '#4f7746';
     const rnd = s => { const x = Math.sin(s * 99.71) * 10000; return x - Math.floor(x); };
-    // branches kept mostly to the top and bottom, leaving the middle clear for the title
-    const branches = [
-      { x1: -14, y1: 74, x2: 205, y2: 40, c: -28, n: 8 },
-      { x1: 120, y1: 30, x2: 322, y2: 116, c: -32, n: 7 },
-      { x1: -14, y1: 150, x2: 96, y2: 232, c: 34, n: 4 },
-      { x1: 210, y1: 236, x2: 322, y2: 196, c: -26, n: 4 },
-      { x1: -14, y1: 330, x2: 150, y2: 384, c: 30, n: 7 },
-      { x1: 150, y1: 392, x2: 322, y2: 320, c: 34, n: 7 },
-    ];
-    const perp = b => {
-      const dx = b.x2 - b.x1, dy = b.y2 - b.y1, len = Math.hypot(dx, dy) || 1;
-      return { nx: -dy / len, ny: dx / len };
-    };
-    const ctrl = b => {
-      const { nx, ny } = perp(b);
-      return { cx: (b.x1 + b.x2) / 2 + nx * b.c, cy: (b.y1 + b.y2) / 2 + ny * b.c };
-    };
-    const qpt = (b, t) => {
-      const { cx, cy } = ctrl(b), u = 1 - t;
-      return { x: u * u * b.x1 + 2 * u * t * cx + t * t * b.x2, y: u * u * b.y1 + 2 * u * t * cy + t * t * b.y2 };
-    };
+    const leaf = (cx, cy, ang, len) =>
+      `<path d="M0 0 C ${-len * 0.22} ${-len * 0.45} ${-len * 0.18} ${-len * 0.85} 0 ${-len} C ${len * 0.18} ${-len * 0.85} ${len * 0.22} ${-len * 0.45} 0 0 Z" transform="translate(${cx.toFixed(1)} ${cy.toFixed(1)}) rotate(${ang.toFixed(1)})" fill="${leafCol}" stroke="${leafInk}" stroke-width="0.4"/>`;
     const blossom = (cx, cy, r, fill, seed) => {
       let petals = '';
       for (let i = 0; i < 5; i++) {
-        petals += `<path d="M0 0 C ${-r * 0.5} ${-r * 0.5} ${-r * 0.55} ${-r * 1.15} 0 ${-r * 1.25} C ${r * 0.55} ${-r * 1.15} ${r * 0.5} ${-r * 0.5} 0 0 Z" transform="rotate(${i * 72 + seed * 30})" fill="${fill}"/>`;
+        petals += `<path d="M0 0 C ${-r * 0.5} ${-r * 0.5} ${-r * 0.55} ${-r * 1.15} 0 ${-r * 1.25} C ${r * 0.55} ${-r * 1.15} ${r * 0.5} ${-r * 0.5} 0 0 Z" transform="rotate(${i * 72 + seed * 24})" fill="${fill}"/>`;
       }
       let knots = '';
       for (let k = 0; k < 4; k++) { const a = k * 90 * Math.PI / 180; knots += `<circle cx="${(Math.cos(a) * r * 0.26).toFixed(1)}" cy="${(Math.sin(a) * r * 0.26).toFixed(1)}" r="${(r * 0.15).toFixed(1)}" fill="${knot}"/>`; }
       return `<g transform="translate(${cx.toFixed(1)} ${cy.toFixed(1)})" stroke="#d69bad" stroke-width="0.4">${petals}<g stroke="none">${knots}</g></g>`;
     };
-    let branchPaths = '', blooms = '';
-    branches.forEach((b, bi) => {
-      const { nx, ny } = perp(b), { cx, cy } = ctrl(b);
-      branchPaths += `<path d="M${b.x1} ${b.y1} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x2} ${b.y2}" fill="none" stroke="${branchCol}" stroke-width="2" stroke-linecap="round"/>`;
-      for (let i = 0; i < b.n; i++) {
-        const t = (i + 0.5) / b.n, pt = qpt(b, t);
-        const off = (rnd(bi * 10 + i) - 0.5) * 18;
-        const ox = pt.x + nx * off, oy = pt.y + ny * off;
-        const r = 5 + rnd(bi * 7 + i) * 3.2;
-        const fill = rnd(bi * 3 + i + 1) > 0.5 ? white : pink;
-        if (rnd(bi + i * 2) > 0.55) blooms += `<circle cx="${(pt.x + nx * off * 0.5).toFixed(1)}" cy="${(pt.y + ny * off * 0.5).toFixed(1)}" r="${(2 + rnd(i) * 1.4).toFixed(1)}" fill="${budDeep}"/>`;
-        blooms += blossom(ox, oy, r, fill, rnd(bi * 5 + i));
-      }
-    });
-    let scatter = '';
-    for (let i = 0; i < 28; i++) {
-      const x = rnd(i * 3.1) * W, y = rnd(i * 5.3 + 1) * H;
-      scatter += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.8 + rnd(i) * 1.3).toFixed(1)}" fill="${rnd(i + 2) > 0.5 ? white : budDeep}" opacity="0.7"/>`;
+
+    const cx = 150, cy = 202, rx = 116, ry = 152, N = 22;
+    let leaves = '', blooms = '';
+    for (let i = 0; i < N; i++) {
+      const a = i / N * Math.PI * 2;
+      const x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
+      const tang = a * 180 / Math.PI + 90;
+      leaves += leaf(x, y, tang + 34, 15) + leaf(x, y, tang - 34, 13);
+    }
+    for (let i = 0; i < N; i++) {
+      const a = i / N * Math.PI * 2;
+      const x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
+      const r = 6.5 + rnd(i) * 3;
+      blooms += blossom(x, y, r, i % 2 ? white : pink, rnd(i * 3));
+      const a2 = (i + 0.5) / N * Math.PI * 2;
+      const x2 = cx + Math.cos(a2) * (rx - 6), y2 = cy + Math.sin(a2) * (ry - 8);
+      if (rnd(i + 1) > 0.4) blooms += `<circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="${(2 + rnd(i) * 1.3).toFixed(1)}" fill="${budDeep}"/>`;
     }
     return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <defs><filter id="embStitch" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="0.7" stdDeviation="0.5" flood-color="#20080f" flood-opacity="0.4"/></filter></defs>
-      <g filter="url(#embStitch)">${branchPaths}</g>
-      <g opacity="0.85">${scatter}</g>
+      <g filter="url(#embStitch)">${leaves}</g>
       <g filter="url(#embStitch)">${blooms}</g>
     </svg>`;
   }
