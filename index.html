@@ -41,12 +41,28 @@
     </div>
   </div>
 
-  <!-- Cover / intro -->
+  <!-- Cover / intro : a diary that opens -->
   <div id="coverScreen" class="cover">
-    <div class="cover-inner">
-      <div class="cover-art" id="coverArt" aria-hidden="true"></div>
-      <h1 class="cover-title">Flower Journal</h1>
-      <p class="cover-tagline">A garden of small moments, opening one day at a time</p>
+    <div class="book-stage">
+      <div class="book">
+        <div class="book-page" aria-hidden="true">
+          <div class="book-page-inner">
+            <div class="page-flower" id="coverPageArt"></div>
+            <p class="page-hello">Dear diary,</p>
+            <p class="page-sub">let's begin.</p>
+          </div>
+        </div>
+        <div class="book-cover" id="bookCover">
+          <span class="book-spine-edge" aria-hidden="true"></span>
+          <div class="cover-frame">
+            <div class="cover-art" id="coverArt" aria-hidden="true"></div>
+            <h1 class="cover-title">Flower Journal</h1>
+            <p class="cover-tagline">a garden of small moments</p>
+            <span class="cover-year" id="coverYear"></span>
+          </div>
+          <span class="cover-ribbon" aria-hidden="true"></span>
+        </div>
+      </div>
       <button id="startBtn" class="cover-btn">Open the journal</button>
     </div>
   </div>
@@ -60,22 +76,22 @@
       <h3 id="modalDate"></h3>
 
       <div class="field-group">
-        <label class="field-label">Pick a flower for today</label>
+        <label class="field-label">Today's flower</label>
         <div id="flowerPicker" class="flower-picker"></div>
       </div>
 
       <div class="field-group">
-        <label class="field-label">How did today feel?</label>
+        <label class="field-label">Today's mood</label>
         <div id="moodPicker" class="mood-picker"></div>
       </div>
 
       <div class="field-group">
-        <label class="field-label" for="memoryText">Capture the memory</label>
-        <textarea id="memoryText" rows="4" placeholder="What happened today? What made it worth remembering?"></textarea>
+        <label class="diary-label" for="memoryText">Dear diary,</label>
+        <textarea id="memoryText" rows="5" placeholder="Write about today — the big things, the small things…"></textarea>
       </div>
 
       <div class="field-group">
-        <label class="field-label">Add a photo (optional)</label>
+        <label class="field-label">A photo from today</label>
         <div class="photo-upload">
           <input type="file" id="photoInput" accept="image/*" />
           <div id="photoPreviewWrap" class="photo-preview-wrap" hidden>

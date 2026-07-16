@@ -418,47 +418,170 @@ body {
 .footer-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 30px; }
 .footer-actions .today-btn { margin: 0; }
 
-/* ---- Cover / intro ---- */
+/* ---- Cover : a diary that opens ---- */
 .cover {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: var(--page);
+  background: radial-gradient(circle at 50% 32%, #efece7, #e5dfd5);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  text-align: center;
-  transition: transform 0.6s cubic-bezier(0.5, 0, 0.2, 1), opacity 0.6s ease;
+  transition: opacity 0.55s ease;
 }
 
-.cover.lifting { transform: translateY(-102%); opacity: 0; pointer-events: none; }
+.cover.lifting { opacity: 0; pointer-events: none; }
 
-.cover-inner { max-width: 460px; animation: coverRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.book-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  perspective: 2200px;
+  animation: coverRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
 @keyframes coverRise {
-  from { transform: translateY(18px); opacity: 0; }
+  from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 
-.cover-art { width: 230px; height: 250px; margin: 0 auto 6px; }
-.cover-art svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 8px 16px rgba(70, 60, 55, 0.18)); }
+.book {
+  position: relative;
+  width: min(340px, 80vw);
+  aspect-ratio: 3 / 4;
+  transform-style: preserve-3d;
+}
+
+/* first inside page, revealed as the cover swings open */
+.book-page {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#fffdf8, #faf3e6);
+  border-radius: 6px 12px 12px 6px;
+  box-shadow: inset 10px 0 18px rgba(120, 90, 70, 0.08), 0 14px 32px rgba(70, 60, 55, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.book-page-inner { text-align: center; padding: 20px; }
+.page-flower { width: 118px; height: 118px; margin: 0 auto 4px; }
+.page-flower svg { width: 100%; height: 100%; overflow: visible; }
+.page-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 2.1rem; color: var(--ink); margin: 0; }
+.page-sub { font-family: 'Caveat', cursive; font-size: 1.35rem; color: var(--ink-soft); margin: 0; }
+
+/* the diary's front cover */
+.book-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  transition: transform 1.05s cubic-bezier(0.62, 0.02, 0.2, 1), box-shadow 1.05s ease;
+  backface-visibility: hidden;
+  border-radius: 6px 14px 14px 6px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.035) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.03) 0 2px, transparent 2px 4px),
+    linear-gradient(140deg, #d07c88 0%, #b65c6a 55%, #a44f5e 100%);
+  box-shadow: 0 18px 40px rgba(70, 45, 45, 0.34);
+}
+
+.book-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.16), transparent 42%);
+  pointer-events: none;
+}
+
+.cover.opening .book-cover {
+  transform: rotateY(-162deg);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.book-spine-edge {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 18px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.05) 60%, rgba(255, 255, 255, 0.06));
+  z-index: 4;
+}
+
+.cover-frame {
+  position: absolute;
+  inset: 18px 18px 18px 28px;
+  border: 1.5px solid rgba(247, 233, 219, 0.55);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px 16px;
+}
+.cover-frame::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(247, 233, 219, 0.3);
+  border-radius: 4px;
+}
+
+.cover-art { width: 140px; height: 150px; margin-bottom: 4px; }
+.cover-art svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.28)); }
 
 .cover-title {
   font-family: 'Parisienne', cursive;
   font-weight: 400;
-  font-size: 4.6rem;
-  line-height: 1.02;
-  margin: 0 0 6px;
-  color: var(--ink);
+  font-size: 3rem;
+  line-height: 1;
+  margin: 2px 0 0;
+  color: #fdf4e8;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .cover-tagline {
   font-family: 'Fraunces', Georgia, serif;
   font-style: italic;
-  font-size: 1.1rem;
-  color: var(--ink-soft);
-  margin: 0 0 28px;
+  font-size: 0.9rem;
+  color: rgba(253, 244, 232, 0.82);
+  margin: 8px 0 0;
+}
+
+.cover-year {
+  position: absolute;
+  bottom: 16px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Fraunces', Georgia, serif;
+  letter-spacing: 0.34em;
+  font-size: 0.66rem;
+  color: rgba(253, 244, 232, 0.7);
+}
+
+.cover-ribbon {
+  position: absolute;
+  top: -2px;
+  right: 40px;
+  width: 15px;
+  height: 66px;
+  background: linear-gradient(#dd5069, #b23350);
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.28);
+  z-index: 5;
+}
+.cover-ribbon::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  border-left: 7.5px solid transparent;
+  border-right: 7.5px solid transparent;
+  border-top: 9px solid #b23350;
 }
 
 .cover-btn {
@@ -473,11 +596,12 @@ body {
   border-radius: 999px;
   cursor: pointer;
   box-shadow: 0 6px 18px rgba(47, 43, 40, 0.28);
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, opacity 0.3s ease;
 }
 
 .cover-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 24px rgba(47, 43, 40, 0.34); }
 .cover-btn:active { transform: translateY(0) scale(0.97); }
+.cover.opening .cover-btn { opacity: 0; transform: translateY(10px); pointer-events: none; }
 
 /* ---- Modal ---- */
 .modal-overlay {
@@ -543,16 +667,38 @@ body {
 
 #modalDate {
   text-align: center;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 500;
-  font-size: 1.4rem;
-  margin: 4px 0 18px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 2.05rem;
+  margin: 6px 0 18px;
   color: var(--ink);
-  line-height: 1.15;
+  line-height: 1.05;
 }
 
 .field-group { margin-bottom: 18px; }
 .field-label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 9px; }
+
+.diary-label {
+  display: block;
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+/* lined diary-paper writing area */
+#memoryText {
+  background-color: #fffdf7;
+  background-image: repeating-linear-gradient(#fffdf7 0 27px, rgba(120, 90, 70, 0.16) 27px 28px);
+  background-attachment: local;
+  border: 1px solid var(--line);
+  border-left: 2px solid rgba(224, 88, 122, 0.4);
+  line-height: 28px;
+  padding: 5px 14px 8px;
+  font-size: 1rem;
+}
+#memoryText:focus { box-shadow: 0 0 0 4px rgba(224, 88, 122, 0.14); border-color: var(--accent); border-left: 2px solid var(--accent); }
 
 .flower-picker, .mood-picker { display: flex; flex-wrap: wrap; gap: 9px; }
 

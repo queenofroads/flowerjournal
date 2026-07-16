@@ -914,24 +914,36 @@
   });
   window.addEventListener('resize', () => { if (currentView === 'ring') layoutRing(); });
 
-  // Cover / intro screen
+  // Cover / intro screen — a diary that opens
   const coverScreen = document.getElementById('coverScreen');
   const startBtn = document.getElementById('startBtn');
   const coverArt = document.getElementById('coverArt');
+  const coverPageArt = document.getElementById('coverPageArt');
+  const coverYear = document.getElementById('coverYear');
   if (coverArt) coverArt.innerHTML = bouquetSVG(Object.keys(FLOWERS), 'color');
+  if (coverPageArt) coverPageArt.innerHTML = flowerHeadSVG('cosmos', 'color');
+  if (coverYear) coverYear.textContent = String(new Date().getFullYear());
+
+  let coverTimers = [];
   function openJournal() {
-    coverScreen.classList.add('lifting');
-    setTimeout(() => { coverScreen.style.display = 'none'; }, 620);
+    coverTimers.forEach(clearTimeout);
+    coverScreen.classList.add('opening');          // front cover swings open
+    coverTimers = [
+      setTimeout(() => coverScreen.classList.add('lifting'), 950),  // then the page fades away
+      setTimeout(() => { coverScreen.style.display = 'none'; }, 1520),
+    ];
   }
   if (startBtn) startBtn.addEventListener('click', openJournal);
   // Re-open the cover by clicking the in-app wordmark
   const heroTitle = document.querySelector('.hero h1');
   if (heroTitle) {
     heroTitle.style.cursor = 'pointer';
-    heroTitle.title = 'Close the journal cover';
+    heroTitle.title = 'Close the journal';
     heroTitle.addEventListener('click', () => {
+      coverTimers.forEach(clearTimeout);
       coverScreen.style.display = '';
-      coverScreen.classList.remove('lifting');
+      // reset to closed on the next frame so the swing can replay
+      requestAnimationFrame(() => coverScreen.classList.remove('opening', 'lifting'));
     });
   }
 
