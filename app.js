@@ -318,45 +318,54 @@
     return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${flowerInner(type, mode, { leaves: false })}</svg>`;
   }
 
-  // Hand-stitched cherry-blossom wreath for the diary cover.
+  // A living cherry-blossom wreath for the diary cover: lush blossoms that
+  // twinkle, sparkles that glimmer — each element animated by CSS.
   function embroideryCoverSVG() {
     const W = 300, H = 400;
-    const white = '#fdeff3', pink = '#f3c2d1', budDeep = '#cf5b7e', knot = '#f2d59a';
+    const white = '#fdeff3', pink = '#f4c3d2', budDeep = '#cf5b7e', knot = '#f2d59a';
     const leafCol = '#6f9a62', leafInk = '#4f7746';
     const rnd = s => { const x = Math.sin(s * 99.71) * 10000; return x - Math.floor(x); };
-    const leaf = (cx, cy, ang, len) =>
-      `<path d="M0 0 C ${-len * 0.22} ${-len * 0.45} ${-len * 0.18} ${-len * 0.85} 0 ${-len} C ${len * 0.18} ${-len * 0.85} ${len * 0.22} ${-len * 0.45} 0 0 Z" transform="translate(${cx.toFixed(1)} ${cy.toFixed(1)}) rotate(${ang.toFixed(1)})" fill="${leafCol}" stroke="${leafInk}" stroke-width="0.4"/>`;
-    const blossom = (cx, cy, r, fill, seed) => {
-      let petals = '';
-      for (let i = 0; i < 5; i++) {
-        petals += `<path d="M0 0 C ${-r * 0.5} ${-r * 0.5} ${-r * 0.55} ${-r * 1.15} 0 ${-r * 1.25} C ${r * 0.55} ${-r * 1.15} ${r * 0.5} ${-r * 0.5} 0 0 Z" transform="rotate(${i * 72 + seed * 24})" fill="${fill}"/>`;
-      }
+    const leafPath = len => `M0 0 C ${-len * 0.22} ${-len * 0.45} ${-len * 0.18} ${-len * 0.85} 0 ${-len} C ${len * 0.18} ${-len * 0.85} ${len * 0.22} ${-len * 0.45} 0 0 Z`;
+
+    // a full little blossom drawn around the origin (positioned by an outer group)
+    const sprig = (r, fill, seed) => {
+      const leaves = `<path d="${leafPath(9)}" transform="rotate(148)" fill="${leafCol}" stroke="${leafInk}" stroke-width="0.4"/>`
+        + `<path d="${leafPath(8)}" transform="rotate(212)" fill="${leafCol}" stroke="${leafInk}" stroke-width="0.4"/>`;
+      let outer = '';
+      for (let i = 0; i < 5; i++) outer += `<path d="M0 0 C ${-r * 0.5} ${-r * 0.5} ${-r * 0.55} ${-r * 1.15} 0 ${-r * 1.25} C ${r * 0.55} ${-r * 1.15} ${r * 0.5} ${-r * 0.5} 0 0 Z" transform="rotate(${i * 72 + seed * 20})" fill="${fill}"/>`;
+      const ri = r * 0.62;
+      let inner = '';
+      for (let i = 0; i < 5; i++) inner += `<path d="M0 0 C ${-ri * 0.5} ${-ri * 0.5} ${-ri * 0.55} ${-ri * 1.15} 0 ${-ri * 1.25} C ${ri * 0.55} ${-ri * 1.15} ${ri * 0.5} ${-ri * 0.5} 0 0 Z" transform="rotate(${i * 72 + 36})" fill="#ffffff"/>`;
       let knots = '';
-      for (let k = 0; k < 4; k++) { const a = k * 90 * Math.PI / 180; knots += `<circle cx="${(Math.cos(a) * r * 0.26).toFixed(1)}" cy="${(Math.sin(a) * r * 0.26).toFixed(1)}" r="${(r * 0.15).toFixed(1)}" fill="${knot}"/>`; }
-      return `<g transform="translate(${cx.toFixed(1)} ${cy.toFixed(1)})" stroke="#d69bad" stroke-width="0.4">${petals}<g stroke="none">${knots}</g></g>`;
+      for (let k = 0; k < 5; k++) { const a = k * 72 * Math.PI / 180; knots += `<circle cx="${(Math.cos(a) * r * 0.2).toFixed(1)}" cy="${(Math.sin(a) * r * 0.2).toFixed(1)}" r="${(r * 0.12).toFixed(1)}" fill="${knot}"/>`; }
+      return `<g stroke="#d69bad" stroke-width="0.4">${leaves}<g>${outer}</g><g stroke="none">${inner}</g><g stroke="none">${knots}</g></g>`;
     };
 
     const cx = 150, cy = 202, rx = 116, ry = 152, N = 22;
-    let leaves = '', blooms = '';
+    let blooms = '';
     for (let i = 0; i < N; i++) {
       const a = i / N * Math.PI * 2;
       const x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
-      const tang = a * 180 / Math.PI + 90;
-      leaves += leaf(x, y, tang + 34, 15) + leaf(x, y, tang - 34, 13);
-    }
-    for (let i = 0; i < N; i++) {
-      const a = i / N * Math.PI * 2;
-      const x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
-      const r = 6.5 + rnd(i) * 3;
-      blooms += blossom(x, y, r, i % 2 ? white : pink, rnd(i * 3));
+      const r = 7 + rnd(i) * 3;
+      const delay = (rnd(i * 3) * 3.4).toFixed(2);
+      blooms += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="cov-bloom" style="animation-delay:${delay}s">${sprig(r, i % 2 ? white : pink, rnd(i * 5))}</g></g>`;
       const a2 = (i + 0.5) / N * Math.PI * 2;
       const x2 = cx + Math.cos(a2) * (rx - 6), y2 = cy + Math.sin(a2) * (ry - 8);
-      if (rnd(i + 1) > 0.4) blooms += `<circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="${(2 + rnd(i) * 1.3).toFixed(1)}" fill="${budDeep}"/>`;
+      if (rnd(i + 1) > 0.4) blooms += `<circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="${(2 + rnd(i) * 1.2).toFixed(1)}" fill="${budDeep}"/>`;
+    }
+    let sparks = '';
+    for (let i = 0; i < 11; i++) {
+      const a = (i + 0.3) / 11 * Math.PI * 2;
+      const out = rnd(i * 2) > 0.5;
+      const x = cx + Math.cos(a) * (rx + (out ? 17 : -20));
+      const y = cy + Math.sin(a) * (ry + (out ? 17 : -22));
+      const delay = (rnd(i * 7) * 2.6).toFixed(2);
+      const sc = (0.7 + rnd(i) * 0.6).toFixed(2);
+      sparks += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc})"><g class="cov-spark" style="animation-delay:${delay}s"><path d="M0 -4 Q0.7 -0.7 4 0 Q0.7 0.7 0 4 Q-0.7 0.7 -4 0 Q-0.7 -0.7 0 -4 Z" fill="#ffe9c2"/></g></g>`;
     }
     return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-      <defs><filter id="embStitch" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="0.7" stdDeviation="0.5" flood-color="#20080f" flood-opacity="0.4"/></filter></defs>
-      <g filter="url(#embStitch)">${leaves}</g>
-      <g filter="url(#embStitch)">${blooms}</g>
+      <g filter="url(#emboss)">${blooms}</g>
+      <g>${sparks}</g>
     </svg>`;
   }
 
@@ -1102,6 +1111,21 @@
   const insideYear = document.getElementById('insideYear');
 
   if (coverEmbroidery) coverEmbroidery.innerHTML = embroideryCoverSVG();
+  const coverDrift = document.getElementById('coverDrift');
+  if (coverDrift && !prefersReducedMotion) {
+    const cols = ['#fdeff3', '#f4c3d2', '#f7d0dd'];
+    for (let i = 0; i < 7; i++) {
+      const el = document.createElement('span');
+      el.className = 'cd-petal';
+      el.innerHTML = `<svg viewBox="0 0 12 16"><path d="M6 0 C10 5 10 11 6 16 C2 11 2 5 6 0 Z" fill="${cols[i % cols.length]}"/></svg>`;
+      el.style.left = `${8 + Math.random() * 84}%`;
+      el.style.setProperty('--dx', `${(Math.random() * 44 - 22).toFixed(0)}px`);
+      el.style.width = `${9 + Math.random() * 8}px`;
+      el.style.animationDuration = `${6 + Math.random() * 5}s`;
+      el.style.animationDelay = `${(-Math.random() * 9).toFixed(1)}s`;
+      coverDrift.appendChild(el);
+    }
+  }
   if (coverPageArt) coverPageArt.innerHTML = flowerHeadSVG('cherryblossom', 'color');
   if (welcomeFlower) welcomeFlower.innerHTML = flowerHeadSVG('rose', 'color');
   if (coverYear) coverYear.textContent = String(new Date().getFullYear());
