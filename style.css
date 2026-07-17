@@ -351,10 +351,24 @@ body::before {
   align-items: center;
   justify-content: center;
   animation: bloomIn 0.4s ease;
+  transition: transform 0.32s cubic-bezier(0.34, 1.6, 0.5, 1);
+  will-change: transform;
 }
 
-.day-flower svg { width: 100%; height: 100%; overflow: visible; }
-.has-entry .day-flower svg { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.16)); }
+.day-flower svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transition: filter 0.3s ease;
+}
+
+/* captured flowers sit embossed on the stamp; empty ones get a soft raise */
+.has-entry .day-flower svg { filter: url(#emboss); }
+.is-bud .day-flower svg { filter: drop-shadow(-0.6px -0.6px 0 rgba(255, 255, 255, 0.5)) drop-shadow(0 1.4px 1.5px rgba(90, 60, 45, 0.22)); }
+
+/* zoom the flower when you hover its day */
+.day-card:hover .day-flower { transform: scale(1.24); }
+.day-card.has-entry:hover .day-flower svg { filter: url(#emboss) drop-shadow(0 4px 6px rgba(60, 35, 28, 0.32)); }
 
 .is-today .stamp { box-shadow: 0 0 0 2.5px var(--accent); border-radius: 6px; }
 
@@ -826,6 +840,7 @@ body::before {
 
 .modal-flower { width: 138px; margin: 4px auto 4px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .modal-flower .stamp { width: 100%; }
+.modal-flower .day-flower svg { filter: url(#emboss); }
 .modal-flower.pulse { animation: stampPop 0.6s cubic-bezier(0.22, 1.4, 0.36, 1); }
 
 #modalDate {

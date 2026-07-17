@@ -9,6 +9,20 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- embossing filter for the flowers: a soft bevel + drop shadow so they feel pressed into the stamp -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="emboss" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.1" result="blur" />
+        <feSpecularLighting in="blur" surfaceScale="2.2" specularConstant="0.7" specularExponent="14" lighting-color="#ffffff" result="spec">
+          <feDistantLight azimuth="230" elevation="58" />
+        </feSpecularLighting>
+        <feComposite in="spec" in2="SourceAlpha" operator="in" result="specCut" />
+        <feComposite in="SourceGraphic" in2="specCut" operator="arithmetic" k1="0" k2="1" k3="0.85" k4="0" result="lit" />
+        <feDropShadow dx="0" dy="1.4" stdDeviation="1.1" flood-color="#3a2018" flood-opacity="0.34" />
+      </filter>
+    </defs>
+  </svg>
   <div class="bg-petals" id="bgPetals" aria-hidden="true"></div>
   <div class="app">
     <header class="hero">
