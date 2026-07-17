@@ -27,6 +27,41 @@
 
   const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
+  // gentle daily prompts to spark a line or two
+  const PROMPTS = [
+    'What made you smile today?',
+    'One small thing you are grateful for?',
+    'What do you want to remember about today?',
+    'Who or what made today a little lighter?',
+    'What is one tiny win from today?',
+    'How did you take care of yourself today?',
+    'What surprised you today?',
+    'A moment from today you would happily relive?',
+    'What are you ready to let go of tonight?',
+    'What is quietly blooming in your life right now?',
+    'A sound, smell, or taste from today worth keeping?',
+    'Who deserves a thank-you today?',
+    'What felt hard, and how did you meet it?',
+    'What are you looking forward to?',
+    'Where did you feel most like yourself today?',
+  ];
+  // affirmations shown after you save
+  const AFFIRMATIONS = [
+    'You showed up today. That is enough.',
+    'One more day, gently kept.',
+    'Small moments make a whole life.',
+    'Look at your garden growing.',
+    'You are becoming, one day at a time.',
+    'Today mattered, and so do you.',
+    'A little bloom for a full day.',
+    'Kind to yourself, always.',
+  ];
+  function pickBy(arr, key) {
+    let h = 0;
+    for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+    return arr[h % arr.length];
+  }
+
   const PENCIL = { stroke: '#b0a086', fill: 'none' };
 
   const MOODS = [
@@ -441,6 +476,7 @@
   const flowerPicker = document.getElementById('flowerPicker');
   const moodPicker = document.getElementById('moodPicker');
   const memoryText = document.getElementById('memoryText');
+  const diaryPrompt = document.getElementById('diaryPrompt');
   const photoInput = document.getElementById('photoInput');
   const photoPreviewWrap = document.getElementById('photoPreviewWrap');
   const photoPreview = document.getElementById('photoPreview');
@@ -784,6 +820,7 @@
 
     memoryText.value = entry ? entry.text : '';
     memoryText.placeholder = 'What happened today? What made it worth remembering?';
+    if (diaryPrompt) diaryPrompt.textContent = pickBy(PROMPTS, key);
     photoInput.value = '';
     if (pendingPhoto) {
       photoPreview.src = pendingPhoto;
@@ -859,6 +896,7 @@
     setTimeout(() => {
       closeModal();
       render();
+      showAffirmation();
     }, 260);
   });
 
@@ -1161,6 +1199,84 @@
       requestAnimationFrame(() => coverScreen.classList.remove('lifting'));
     });
   }
+
+  // ---- Affirmation toast ----
+  const affirmationEl = document.getElementById('affirmation');
+  let affTimer;
+  function showAffirmation(msg) {
+    if (!affirmationEl) return;
+    const line = msg || AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)];
+    affirmationEl.textContent = line;
+    affirmationEl.hidden = false;
+    requestAnimationFrame(() => affirmationEl.classList.add('show'));
+    clearTimeout(affTimer);
+    affTimer = setTimeout(() => {
+      affirmationEl.classList.remove('show');
+      setTimeout(() => { affirmationEl.hidden = true; }, 400);
+    }, 3000);
+  }
+
+  // ---- Letter to your future self (five years on) ----
+  const FUTURE_KEY = 'flowerJournal.futureLetter';
+  const futureBtn = document.getElementById('futureBtn');
+  const futureOverlay = document.getElementById('futureOverlay');
+  const futureText = document.getElementById('futureText');
+  const futureSub = document.getElementById('futureSub');
+  const futureSalutation = document.getElementById('futureSalutation');
+  const saveFutureBtn = document.getElementById('saveFuture');
+  const clearFutureBtn = document.getElementById('clearFuture');
+  const closeFutureBtn = document.getElementById('closeFuture');
+  const futureFlower = document.getElementById('futureFlower');
+  const fmtLong = d => d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  const loadFuture = () => { try { return JSON.parse(localStorage.getItem(FUTURE_KEY)); } catch (e) { return null; } };
+
+  function openFuture() {
+    if (!futureOverlay) return;
+    futureSalutation.textContent = `Dear me in ${new Date().getFullYear() + 5},`;
+    if (futureFlower) futureFlower.innerHTML = flowerSVG('cherryblossom', 'color');
+    const stored = loadFuture();
+    if (stored && stored.text) {
+      futureText.value = stored.text;
+      futureSub.textContent = stored.opensOn
+        ? `sealed ${fmtLong(new Date(stored.sealedOn))} · to reopen ${fmtLong(new Date(stored.opensOn))}`
+        : '';
+      clearFutureBtn.hidden = false;
+      saveFutureBtn.textContent = 'Reseal';
+    } else {
+      futureText.value = '';
+      futureSub.textContent = 'write it now — read it in five years';
+      clearFutureBtn.hidden = true;
+      saveFutureBtn.textContent = 'Seal this letter';
+    }
+    futureOverlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => futureText.focus(), 60);
+  }
+  function closeFuture() {
+    futureOverlay.classList.add('closing');
+    setTimeout(() => { futureOverlay.hidden = true; futureOverlay.classList.remove('closing'); document.body.style.overflow = ''; }, 160);
+  }
+  if (futureBtn) futureBtn.addEventListener('click', openFuture);
+  if (closeFutureBtn) closeFutureBtn.addEventListener('click', closeFuture);
+  if (futureOverlay) futureOverlay.addEventListener('click', e => { if (e.target === futureOverlay) closeFuture(); });
+  if (saveFutureBtn) saveFutureBtn.addEventListener('click', () => {
+    const text = futureText.value.trim();
+    if (!text) { futureText.focus(); futureText.classList.add('nudge'); setTimeout(() => futureText.classList.remove('nudge'), 500); return; }
+    const now = new Date();
+    const opens = new Date(now); opens.setFullYear(opens.getFullYear() + 5);
+    localStorage.setItem(FUTURE_KEY, JSON.stringify({ text, sealedOn: now.toISOString(), opensOn: opens.toISOString() }));
+    closeFuture();
+    showAffirmation(`Sealed. See you in ${opens.getFullYear()}. 💌`);
+  });
+  if (clearFutureBtn) clearFutureBtn.addEventListener('click', () => {
+    localStorage.removeItem(FUTURE_KEY);
+    futureText.value = '';
+    futureSub.textContent = 'write it now — read it in five years';
+    clearFutureBtn.hidden = true;
+    saveFutureBtn.textContent = 'Seal this letter';
+    futureText.focus();
+  });
+  document.addEventListener('keydown', e => { if (futureOverlay && !futureOverlay.hidden && e.key === 'Escape') closeFuture(); });
 
   renderWeekdayRow();
   renderFlowerPicker();
