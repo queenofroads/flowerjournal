@@ -281,13 +281,37 @@
     forgetmenot: drawForgetmenot, sakura: drawSakura, bluebell: drawBluebell,
   };
 
+  // A little kawaii face: happy + rosy when in colour, sleeping when line-art.
+  function faceSVG(mode) {
+    if (mode === 'ink') {
+      return `<g fill="none" stroke="${PENCIL.stroke}" stroke-width="2" stroke-linecap="round" opacity="0.9">
+        <path d="M51 49 Q54 52.5 57 49"/>
+        <path d="M63 49 Q66 52.5 69 49"/>
+      </g>`;
+    }
+    const eye = '#4a3330';
+    return `<g>
+      <ellipse cx="49" cy="55" rx="4.6" ry="2.9" fill="#ff9fb2" opacity="0.55"/>
+      <ellipse cx="71" cy="55" rx="4.6" ry="2.9" fill="#ff9fb2" opacity="0.55"/>
+      <ellipse cx="53" cy="49" rx="3.4" ry="4.1" fill="#ffffff"/>
+      <ellipse cx="67" cy="49" rx="3.4" ry="4.1" fill="#ffffff"/>
+      <ellipse cx="53" cy="49.5" rx="2.2" ry="2.9" fill="${eye}"/>
+      <ellipse cx="67" cy="49.5" rx="2.2" ry="2.9" fill="${eye}"/>
+      <circle cx="52" cy="48" r="1" fill="#ffffff"/>
+      <circle cx="66" cy="48" r="1" fill="#ffffff"/>
+      <path d="M55.5 55 Q60 60.5 64.5 55" fill="none" stroke="#ffffff" stroke-width="3.6" stroke-linecap="round"/>
+      <path d="M55.5 55 Q60 60 64.5 55" fill="none" stroke="${eye}" stroke-width="2" stroke-linecap="round"/>
+    </g>`;
+  }
+
   function flowerInner(type, mode, opts) {
     const f = FLOWERS[type] || FLOWERS.rose;
-    return DRAWERS[f.draw](f, mode, opts);
+    const body = DRAWERS[f.draw](f, mode, opts);
+    return body + ((opts && opts.face) ? faceSVG(mode) : '');
   }
 
   function flowerSVG(type, mode = 'color') {
-    return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${flowerInner(type, mode)}</svg>`;
+    return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${flowerInner(type, mode, { face: true })}</svg>`;
   }
 
   function flowerHeadSVG(type, mode = 'color') {
@@ -556,6 +580,8 @@
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(card.dataset.key); }
       });
       if (!ring && !prefersReducedMotion) attachTilt(card);
+      const fsvg = card.querySelector('.day-flower svg');
+      if (fsvg) fsvg.style.animationDelay = `${(Math.random() * 2.6).toFixed(2)}s`;
       if (card.dataset.key === justSavedKey) {
         card.classList.add('just-bloomed');
         spawnSparkles(card);
