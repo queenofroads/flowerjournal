@@ -1123,7 +1123,6 @@
   const coverPageArt = document.getElementById('coverPageArt');
   const welcomeFlower = document.getElementById('welcomeFlower');
   const coverYear = document.getElementById('coverYear');
-  const insideFlower = document.getElementById('insideFlower');
 
   if (coverEmbroidery) coverEmbroidery.innerHTML = embroideryCoverSVG();
   const coverDrift = document.getElementById('coverDrift');
@@ -1144,7 +1143,6 @@
   if (coverPageArt) coverPageArt.innerHTML = flowerHeadSVG('cherryblossom', 'color');
   if (welcomeFlower) welcomeFlower.innerHTML = flowerHeadSVG('rose', 'color');
   if (coverYear) coverYear.textContent = String(new Date().getFullYear());
-  if (insideFlower) insideFlower.innerHTML = flowerHeadSVG('cherryblossom', 'color');
   if (leafCover) leafCover.style.zIndex = 3;
   if (leafWelcome) leafWelcome.style.zIndex = 2;
 
@@ -1164,7 +1162,7 @@
     if (turning || turnStep >= bookLeaves.length) return;
     const leaf = bookLeaves[turnStep];
     turning = true;
-    if (turnStep === 0) { if (startBtn) startBtn.classList.add('gone'); book.classList.add('spread'); }
+    if (turnStep === 0 && startBtn) startBtn.classList.add('gone');
     leaf.classList.add('turning', 'turned');
     leaf.style.zIndex = 1;                     // drop behind the page underneath
     turnStep++;
@@ -1190,7 +1188,6 @@
     heroTitle.title = 'Close the journal';
     heroTitle.addEventListener('click', () => {
       bookLeaves.forEach((lf, i) => { lf.classList.remove('turned', 'turning'); lf.style.zIndex = 3 - i; });
-      book.classList.remove('spread');
       turnStep = 0;
       turning = false;
       if (startBtn) startBtn.classList.remove('gone');

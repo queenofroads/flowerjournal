@@ -580,24 +580,21 @@ body::before {
 
 .book {
   position: relative;
-  width: clamp(240px, 32vw, 320px);
+  width: clamp(260px, 82vw, 336px);
   aspect-ratio: 3 / 4;
-  transform-style: preserve-3d;
   cursor: pointer;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .book:hover { transform: translateY(-6px) rotate(-0.5deg); }
-/* once open, slide so the spine sits at centre and the spread reads as one book */
-.book.spread, .book.spread:hover { transform: translateX(50%); }
 
-/* the last page you reach — the journal awaits beneath */
+/* the journal awaits beneath the last page */
 .book-base {
   position: absolute;
   inset: 0;
   z-index: 0;
-  border-radius: 4px 16px 16px 4px;
+  border-radius: 18px;
   background: linear-gradient(#fffdf8, #f7f0e2);
-  box-shadow: inset 12px 0 22px rgba(120, 90, 70, 0.10), 0 16px 34px rgba(70, 60, 55, 0.2);
+  box-shadow: 0 16px 34px rgba(70, 60, 55, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -609,54 +606,30 @@ body::before {
 .page-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.9rem; color: var(--ink); margin: 0; }
 .page-sub { font-family: 'Caveat', cursive; font-size: 1.3rem; color: var(--ink-soft); margin: 0; }
 
-/* a turnable leaf (cover, then welcome page) */
+/* each page lifts and turns away, revealing the page beneath — no 3D backface,
+   so it renders correctly on every browser (incl. mobile Safari) */
 .leaf {
   position: absolute;
   inset: 0;
   transform-origin: left center;
-  transform-style: preserve-3d;
-  transition: transform 0.95s cubic-bezier(0.42, 0.04, 0.22, 1);
-  will-change: transform;
+  transition: transform 0.85s cubic-bezier(0.5, 0.05, 0.25, 1), opacity 0.6s ease 0.15s;
+  will-change: transform, opacity;
 }
-.leaf.turned { transform: rotateY(-180deg); }
+.leaf.turned {
+  transform: perspective(1500px) rotateY(-118deg);
+  opacity: 0;
+}
 
 .face {
   position: absolute;
   inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 4px 16px 16px 4px;   /* right-hand page: round the outer edge */
+  border-radius: 18px;
   overflow: hidden;
+  box-shadow: 0 16px 40px rgba(50, 30, 35, 0.3);
 }
-.face.back { transform: rotateY(180deg); }
-/* left-hand page (inside of the cover): round its outer edge instead */
-.cover-inside { border-radius: 16px 4px 4px 16px; }
-.cover-inside::before { background: linear-gradient(270deg, rgba(0, 0, 0, 0.16), transparent 15%); }
-
-/* soft shadow near the spine + a glare that sweeps while turning */
-.face::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 6;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent 14%);
-}
-.face::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 7;
-  background: linear-gradient(105deg, rgba(255, 255, 255, 0.22), transparent 45%);
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-.leaf.turning .face::after { opacity: 1; }
 
 /* front of the cover — woven wine cloth */
 .cover-face {
-  box-shadow: 0 16px 40px rgba(50, 20, 30, 0.4);
   background:
     repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.10) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.09) 0 1px, transparent 1px 3px),
@@ -664,10 +637,9 @@ body::before {
     linear-gradient(150deg, #7c2440 0%, #661a33 55%, #56142b 100%);
 }
 
-/* cream pages: inside of the cover, and the welcome leaf */
-.cover-inside, .welcome-face {
+/* cream welcome page */
+.welcome-face {
   background: linear-gradient(#fffdf8, #f7f0e2);
-  box-shadow: 0 10px 26px rgba(70, 60, 55, 0.16);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -799,6 +771,7 @@ body::before {
 .inside-owner { font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.25rem; color: var(--ink-soft); margin: 0; }
 
 /* the welcome / invitation page */
+.w-eyebrow { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 0.82rem; letter-spacing: 0.01em; color: var(--accent); margin: 0 0 14px; }
 .w-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 2.3rem; color: var(--ink); margin: 0; }
 .w-note { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 1rem; line-height: 1.75; color: #6b6158; margin: 16px auto 14px; max-width: 26ch; }
 .w-flower { width: 60px; height: 60px; margin: 2px auto 8px; }
