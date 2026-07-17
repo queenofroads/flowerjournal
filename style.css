@@ -580,22 +580,24 @@ body::before {
 
 .book {
   position: relative;
-  width: min(340px, 80vw);
+  width: clamp(240px, 32vw, 320px);
   aspect-ratio: 3 / 4;
   transform-style: preserve-3d;
   cursor: pointer;
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .book:hover { transform: translateY(-6px) rotate(-0.5deg); }
+/* once open, slide so the spine sits at centre and the spread reads as one book */
+.book.spread, .book.spread:hover { transform: translateX(50%); }
 
 /* the last page you reach — the journal awaits beneath */
 .book-base {
   position: absolute;
   inset: 0;
   z-index: 0;
-  border-radius: 6px 12px 12px 6px;
+  border-radius: 4px 16px 16px 4px;
   background: linear-gradient(#fffdf8, #f7f0e2);
-  box-shadow: inset 12px 0 22px rgba(120, 90, 70, 0.10), 0 16px 34px rgba(70, 60, 55, 0.22);
+  box-shadow: inset 12px 0 22px rgba(120, 90, 70, 0.10), 0 16px 34px rgba(70, 60, 55, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -616,17 +618,20 @@ body::before {
   transition: transform 0.95s cubic-bezier(0.42, 0.04, 0.22, 1);
   will-change: transform;
 }
-.leaf.turned { transform: rotateY(-179deg); }
+.leaf.turned { transform: rotateY(-180deg); }
 
 .face {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: 6px 12px 12px 6px;
+  border-radius: 4px 16px 16px 4px;   /* right-hand page: round the outer edge */
   overflow: hidden;
 }
 .face.back { transform: rotateY(180deg); }
+/* left-hand page (inside of the cover): round its outer edge instead */
+.cover-inside { border-radius: 16px 4px 4px 16px; }
+.cover-inside::before { background: linear-gradient(270deg, rgba(0, 0, 0, 0.16), transparent 15%); }
 
 /* soft shadow near the spine + a glare that sweeps while turning */
 .face::before {
@@ -662,13 +667,13 @@ body::before {
 /* cream pages: inside of the cover, and the welcome leaf */
 .cover-inside, .welcome-face {
   background: linear-gradient(#fffdf8, #f7f0e2);
-  box-shadow: 0 14px 34px rgba(70, 60, 55, 0.2);
+  box-shadow: 0 10px 26px rgba(70, 60, 55, 0.16);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 30px 26px;
+  padding: 34px 30px;
 }
 
 .book-spine-edge {
@@ -784,15 +789,18 @@ body::before {
   border-top: 9px solid #b23350;
 }
 
-/* inside-of-cover text (back face of the cover leaf) */
-.inside-note { font-family: 'Parisienne', cursive; font-size: 2.2rem; color: #b06e79; margin: 0; }
-.inside-sub { font-family: 'Fraunces', Georgia, serif; font-style: italic; color: var(--ink-soft); font-size: 0.9rem; margin: 6px 0 0; }
+/* inside-of-cover : a little frontispiece */
+.inside-flower { width: 60px; height: 60px; margin: 0 auto 10px; }
+.inside-flower svg { width: 100%; height: 100%; overflow: visible; }
+.inside-note { font-family: 'Parisienne', cursive; font-size: 2.4rem; color: #b06e79; margin: 0; line-height: 1; }
+.inside-sub { font-family: 'Fraunces', Georgia, serif; font-style: italic; color: var(--ink-soft); font-size: 0.92rem; margin: 6px 0 0; }
+.inside-rule { display: block; width: 46px; height: 1px; background: rgba(120, 90, 70, 0.35); margin: 16px 0; }
+.inside-owner { font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.25rem; color: var(--ink-soft); margin: 0; }
 
-/* the welcome (Dear diary) page */
-.w-date { font-family: 'Caveat', cursive; font-size: 1.15rem; color: var(--ink-soft); margin: 0 0 8px; }
+/* the welcome / invitation page */
 .w-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 2.3rem; color: var(--ink); margin: 0; }
-.w-note { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 1.02rem; line-height: 1.7; color: #6b6158; margin: 14px 0 12px; }
-.w-flower { width: 66px; height: 66px; margin: 2px auto 6px; }
+.w-note { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 1rem; line-height: 1.75; color: #6b6158; margin: 16px auto 14px; max-width: 26ch; }
+.w-flower { width: 60px; height: 60px; margin: 2px auto 8px; }
 .w-flower svg { width: 100%; height: 100%; overflow: visible; }
 .turn-cue {
   font-family: 'Caveat', cursive;
