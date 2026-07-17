@@ -318,53 +318,54 @@
     return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${flowerInner(type, mode, { leaves: false })}</svg>`;
   }
 
-  // A living cherry-blossom wreath for the diary cover: lush blossoms that
-  // twinkle, sparkles that glimmer — each element animated by CSS.
+  // A living cherry-blossom wreath framing the title: outlined blossoms with
+  // gold centres (no ghostly glow), a wide clear centre, gentle animation.
   function embroideryCoverSVG() {
     const W = 300, H = 400;
-    const white = '#fdeff3', pink = '#f4c3d2', budDeep = '#cf5b7e', knot = '#f2d59a';
+    const rose = '#f0a6c0', paleRose = '#f8cbda', outline = '#cf7d9c';
+    const budDeep = '#d15c7e', gold = '#e8c06a', goldDeep = '#cf9f45';
     const leafCol = '#6f9a62', leafInk = '#4f7746';
     const rnd = s => { const x = Math.sin(s * 99.71) * 10000; return x - Math.floor(x); };
     const leafPath = len => `M0 0 C ${-len * 0.22} ${-len * 0.45} ${-len * 0.18} ${-len * 0.85} 0 ${-len} C ${len * 0.18} ${-len * 0.85} ${len * 0.22} ${-len * 0.45} 0 0 Z`;
 
-    // a full little blossom drawn around the origin (positioned by an outer group)
+    // a notched cherry-blossom petal pointing up, radius r
+    const petal = r => `M0 0 C ${-r * 0.52} ${-r * 0.5} ${-r * 0.5} ${-r * 1.02} ${-r * 0.16} ${-r * 1.2} C ${-r * 0.06} ${-r * 1.27} 0 ${-r * 1.2} 0 ${-r * 1.12} C 0 ${-r * 1.2} ${r * 0.06} ${-r * 1.27} ${r * 0.16} ${-r * 1.2} C ${r * 0.5} ${-r * 1.02} ${r * 0.52} ${-r * 0.5} 0 0 Z`;
+
     const sprig = (r, fill, seed) => {
-      const leaves = `<path d="${leafPath(9)}" transform="rotate(148)" fill="${leafCol}" stroke="${leafInk}" stroke-width="0.4"/>`
-        + `<path d="${leafPath(8)}" transform="rotate(212)" fill="${leafCol}" stroke="${leafInk}" stroke-width="0.4"/>`;
-      let outer = '';
-      for (let i = 0; i < 5; i++) outer += `<path d="M0 0 C ${-r * 0.5} ${-r * 0.5} ${-r * 0.55} ${-r * 1.15} 0 ${-r * 1.25} C ${r * 0.55} ${-r * 1.15} ${r * 0.5} ${-r * 0.5} 0 0 Z" transform="rotate(${i * 72 + seed * 20})" fill="${fill}"/>`;
-      const ri = r * 0.62;
-      let inner = '';
-      for (let i = 0; i < 5; i++) inner += `<path d="M0 0 C ${-ri * 0.5} ${-ri * 0.5} ${-ri * 0.55} ${-ri * 1.15} 0 ${-ri * 1.25} C ${ri * 0.55} ${-ri * 1.15} ${ri * 0.5} ${-ri * 0.5} 0 0 Z" transform="rotate(${i * 72 + 36})" fill="#ffffff"/>`;
-      let knots = '';
-      for (let k = 0; k < 5; k++) { const a = k * 72 * Math.PI / 180; knots += `<circle cx="${(Math.cos(a) * r * 0.2).toFixed(1)}" cy="${(Math.sin(a) * r * 0.2).toFixed(1)}" r="${(r * 0.12).toFixed(1)}" fill="${knot}"/>`; }
-      return `<g stroke="#d69bad" stroke-width="0.4">${leaves}<g>${outer}</g><g stroke="none">${inner}</g><g stroke="none">${knots}</g></g>`;
+      const leaves = `<path d="${leafPath(9)}" transform="rotate(150)" fill="${leafCol}" stroke="${leafInk}" stroke-width="0.5"/>`
+        + `<path d="${leafPath(8)}" transform="rotate(210)" fill="${leafCol}" stroke="${leafInk}" stroke-width="0.5"/>`;
+      let petals = '';
+      for (let i = 0; i < 5; i++) petals += `<path d="${petal(r)}" transform="rotate(${i * 72 + seed * 18})" fill="${fill}"/>`;
+      let stamens = '';
+      for (let k = 0; k < 5; k++) { const a = k * 72 * Math.PI / 180; stamens += `<circle cx="${(Math.cos(a) * r * 0.26).toFixed(1)}" cy="${(Math.sin(a) * r * 0.26).toFixed(1)}" r="${(r * 0.1).toFixed(1)}" fill="${goldDeep}"/>`; }
+      return `<g>${leaves}<g stroke="${outline}" stroke-width="0.7" stroke-linejoin="round">${petals}</g><g stroke="none">${stamens}<circle r="${(r * 0.2).toFixed(1)}" fill="${gold}"/></g></g>`;
     };
 
-    const cx = 150, cy = 202, rx = 116, ry = 152, N = 22;
+    const cx = 150, cy = 200, rx = 124, ry = 172, N = 20;
     let blooms = '';
     for (let i = 0; i < N; i++) {
-      const a = i / N * Math.PI * 2;
+      const a = i / N * Math.PI * 2 - Math.PI / 2;   // start at top
       const x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
-      const r = 7 + rnd(i) * 3;
+      const r = 8 + rnd(i) * 3;
       const delay = (rnd(i * 3) * 3.4).toFixed(2);
-      blooms += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="cov-bloom" style="animation-delay:${delay}s">${sprig(r, i % 2 ? white : pink, rnd(i * 5))}</g></g>`;
-      const a2 = (i + 0.5) / N * Math.PI * 2;
-      const x2 = cx + Math.cos(a2) * (rx - 6), y2 = cy + Math.sin(a2) * (ry - 8);
-      if (rnd(i + 1) > 0.4) blooms += `<circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="${(2 + rnd(i) * 1.2).toFixed(1)}" fill="${budDeep}"/>`;
+      blooms += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="cov-bloom" style="animation-delay:${delay}s">${sprig(r, i % 2 ? paleRose : rose, rnd(i * 5))}</g></g>`;
+      const a2 = (i + 0.5) / N * Math.PI * 2 - Math.PI / 2;
+      const x2 = cx + Math.cos(a2) * (rx - 4), y2 = cy + Math.sin(a2) * (ry - 6);
+      if (rnd(i + 1) > 0.45) blooms += `<circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="${(2 + rnd(i) * 1.2).toFixed(1)}" fill="${budDeep}"/>`;
     }
     let sparks = '';
-    for (let i = 0; i < 11; i++) {
-      const a = (i + 0.3) / 11 * Math.PI * 2;
+    for (let i = 0; i < 9; i++) {
+      const a = (i + 0.3) / 9 * Math.PI * 2;
       const out = rnd(i * 2) > 0.5;
-      const x = cx + Math.cos(a) * (rx + (out ? 17 : -20));
-      const y = cy + Math.sin(a) * (ry + (out ? 17 : -22));
+      const x = cx + Math.cos(a) * (rx + (out ? 15 : -18));
+      const y = cy + Math.sin(a) * (ry + (out ? 15 : -20));
       const delay = (rnd(i * 7) * 2.6).toFixed(2);
-      const sc = (0.7 + rnd(i) * 0.6).toFixed(2);
-      sparks += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc})"><g class="cov-spark" style="animation-delay:${delay}s"><path d="M0 -4 Q0.7 -0.7 4 0 Q0.7 0.7 0 4 Q-0.7 0.7 -4 0 Q-0.7 -0.7 0 -4 Z" fill="#ffe9c2"/></g></g>`;
+      const sc = (0.7 + rnd(i) * 0.5).toFixed(2);
+      sparks += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc})"><g class="cov-spark" style="animation-delay:${delay}s"><path d="M0 -4 Q0.7 -0.7 4 0 Q0.7 0.7 0 4 Q-0.7 0.7 -4 0 Q-0.7 -0.7 0 -4 Z" fill="#f6dca0"/></g></g>`;
     }
     return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-      <g filter="url(#emboss)">${blooms}</g>
+      <defs><filter id="covSoft" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1" stdDeviation="0.8" flood-color="#2a0812" flood-opacity="0.5"/></filter></defs>
+      <g filter="url(#covSoft)">${blooms}</g>
       <g>${sparks}</g>
     </svg>`;
   }
