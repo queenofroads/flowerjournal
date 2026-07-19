@@ -16,6 +16,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
@@ -1040,12 +1041,27 @@ textarea.nudge { animation: nudge 0.4s ease; }
 
 @media (max-width: 600px) {
   .hero h1 { font-size: 2.4rem; }
-  .calendar-grid { gap: 8px; }
   .cover-title { font-size: 3.4rem; }
+
+  /* tidy the habit bar into an even 2x2 */
+  .stats-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat, .today-cta { min-width: 0; width: 100%; }
+  .stat-num { font-size: 1.3rem; }
+  .today-cta { display: flex; align-items: center; justify-content: center; }
+
+  /* roomier, calmer stamps: bigger flowers, quieter empty days */
+  .calendar-grid { gap: 6px; }
+  .stamp { padding: 4px; }
+  .stamp-date { font-size: 0.72rem; }
+  .stamp-date small { font-size: 0.38rem; }
+  .day-flower { width: 92%; height: 92%; }
+  .is-bud .day-flower { opacity: 0.3; }
+  .is-bud .stamp-date { color: rgba(90, 80, 70, 0.4); }
+
   .calendar-grid.ring-mode { height: 440px; }
   .ring-mode .day-card { width: 62px; }
-  .stamp { padding: 6px; }
-  .stamp-date { font-size: 0.8rem; }
   .modal { padding: 24px 18px 20px; }
   .pick-btn { width: 48px; height: 48px; }
+  .footer-actions { flex-direction: column; align-items: stretch; }
+  .footer-actions .today-btn { width: 100%; }
 }
