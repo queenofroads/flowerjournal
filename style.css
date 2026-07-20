@@ -645,7 +645,13 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: radial-gradient(circle at 50% 32%, #efece7, #e5dfd5);
+  /* the same warm, blooming light as the journal within, so opening is continuous */
+  background:
+    radial-gradient(circle at 24% 18%, #ffe7c8, transparent 52%),
+    radial-gradient(circle at 84% 24%, #ffd1de, transparent 52%),
+    radial-gradient(circle at 72% 84%, #d8ecc7, transparent 55%),
+    radial-gradient(circle at 18% 82%, #e8d6f3, transparent 55%),
+    linear-gradient(160deg, #fdf4ec, #f8eaed);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -716,16 +722,16 @@ body::before {
   inset: 0;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(50, 30, 35, 0.3);
+  box-shadow: 0 18px 42px rgba(150, 90, 110, 0.28);
 }
 
-/* front of the cover — woven wine cloth */
+/* front of the cover — soft blush linen, a cover that blooms */
 .cover-face {
   background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.10) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.09) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 4px),
-    linear-gradient(150deg, #7c2440 0%, #661a33 55%, #56142b 100%);
+    repeating-linear-gradient(0deg, rgba(150, 80, 100, 0.06) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(150, 80, 100, 0.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 2px, transparent 2px 4px),
+    linear-gradient(150deg, #fce0e7 0%, #f7cad7 54%, #f1b8c9 100%);
 }
 
 /* cream welcome page */
@@ -744,7 +750,7 @@ body::before {
   left: 0; top: 0; bottom: 0;
   width: 18px;
   z-index: 5;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.06) 60%, rgba(255, 255, 255, 0.05));
+  background: linear-gradient(90deg, rgba(150, 80, 100, 0.24), rgba(150, 80, 100, 0.05) 60%, rgba(255, 255, 255, 0.35));
 }
 
 .cover-embroidery { position: absolute; inset: 0; z-index: 1; }
@@ -796,9 +802,10 @@ body::before {
   content: '';
   position: absolute;
   left: 50%; top: 50%;
-  width: 64%; height: 56%;
+  width: 66%; height: 58%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse at center, rgba(58, 14, 30, 0.92) 0%, rgba(58, 14, 30, 0.66) 44%, rgba(58, 14, 30, 0.2) 68%, transparent 82%);
+  /* a soft light halo so the title sits airy, not in a dark hole */
+  background: radial-gradient(ellipse at center, rgba(255, 252, 250, 0.72) 0%, rgba(255, 250, 248, 0.4) 46%, rgba(255, 250, 248, 0.12) 70%, transparent 84%);
   z-index: -1;
 }
 
@@ -808,8 +815,8 @@ body::before {
   font-size: 3.3rem;
   line-height: 0.9;
   margin: 0;
-  color: #fdeef2;
-  text-shadow: 0 1px 3px rgba(30, 8, 16, 0.85), 0 0 16px rgba(30, 8, 16, 0.55);
+  color: #9c3358;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
   animation: titleBreath 4.6s ease-in-out infinite;
 }
 .cover-title span { display: block; }
@@ -818,9 +825,9 @@ body::before {
   font-family: 'Caveat', cursive;
   font-weight: 700;
   font-size: 1.35rem;
-  color: rgba(253, 238, 242, 0.9);
+  color: #b0567a;
   margin: 6px 0 0;
-  text-shadow: 0 1px 3px rgba(30, 8, 16, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 .cover-year {
   position: absolute;
@@ -831,8 +838,7 @@ body::before {
   font-family: 'Fraunces', Georgia, serif;
   letter-spacing: 0.34em;
   font-size: 0.66rem;
-  color: rgba(253, 238, 242, 0.75);
-  text-shadow: 0 1px 3px rgba(30, 8, 16, 0.5);
+  color: rgba(140, 60, 90, 0.66);
 }
 .cover-ribbon {
   position: absolute;
@@ -883,15 +889,15 @@ body::before {
   font-size: 0.95rem;
   letter-spacing: 0.02em;
   color: #fff;
-  background: var(--ink);
+  background: linear-gradient(150deg, #ef6f92, #d84e70);
   border: none;
   padding: 14px 32px;
   border-radius: 999px;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(47, 43, 40, 0.28);
+  box-shadow: 0 8px 20px rgba(216, 78, 112, 0.36);
   transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, opacity 0.3s ease;
 }
-.cover-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 24px rgba(47, 43, 40, 0.34); }
+.cover-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 12px 26px rgba(216, 78, 112, 0.44); }
 .cover-btn:active { transform: translateY(0) scale(0.97); }
 .cover-btn.gone { opacity: 0; transform: translateY(10px); pointer-events: none; }
 
