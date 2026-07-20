@@ -25,6 +25,10 @@
     crocus:      { label: 'Crocus',      petal: '#8D32A7', petal2: '#CDBDF6', ink: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#FA318A', draw: 'tulip' },
     dahlia:      { label: 'Dahlia',      petal: '#BA1259', petal2: '#FA318A', ink: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', core: '#4A0E2B', seed: '#4A0E2B', bg: '#A3CFFC', draw: 'sunflower' },
     cornflower:  { label: 'Cornflower',  petal: '#2D72D9', petal2: '#A3CFFC', ink: '#1c2044', core: '#4A0E2B', seed: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#EE4A36', draw: 'sunflower' },
+    aster:       { label: 'Aster',       petal: '#8D32A7', petal2: '#CDBDF6', ink: '#4A0E2B', core: '#FED52B', coreInk: '#FFB719', leaf: '#168B46', leafInk: '#5B7318', bg: '#FFF8DC', draw: 'aster' },
+    zinnia:      { label: 'Zinnia',      petal: '#EE4A36', petal2: '#FFB719', ink: '#BA1259', core: '#FFB719', leaf: '#168B46', leafInk: '#5B7318', bg: '#CDBDF6', draw: 'zinnia' },
+    camellia:    { label: 'Camellia',    petal: '#F7B2D2', petal2: '#FA318A', ink: '#BA1259', core: '#FED52B', leaf: '#168B46', leafInk: '#5B7318', bg: '#A3CFFC', draw: 'ranunculus' },
+    hibiscus:    { label: 'Hibiscus',    petal: '#FA318A', petal2: '#F99E7B', ink: '#BA1259', core: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#1BB29D', draw: 'poppy' },
   };
 
   const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -317,10 +321,55 @@
     return `${base(f, mode, opts)}<g>${cluster}</g>`;
   }
 
+  function drawAster(f, mode, opts) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const core = mode === 'ink' ? 'none' : (f.core || '#FED52B');
+    let petals = '';
+    for (let i = 0; i < 12; i++) {
+      const angle = i * 30;
+      const a = angle * Math.PI / 180;
+      const dx = Math.cos(a) * 32;
+      const dy = Math.sin(a) * 32;
+      const cx = 60 + dx, cy = 52 + dy;
+      petals += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="14" ry="20" fill="${fill}" stroke="${stroke}" stroke-width="1.8" transform="rotate(${angle} ${cx.toFixed(1)} ${cy.toFixed(1)})"/>`;
+    }
+    return `${base(f, mode, opts)}
+      <g>${petals}</g>
+      <circle cx="60" cy="52" r="12" fill="${core}" stroke="${stroke}" stroke-width="1.6"/>`;
+  }
+
+  function drawZinnia(f, mode, opts) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const fill2 = mode === 'ink' ? 'none' : f.petal2;
+    const core = mode === 'ink' ? 'none' : (f.core || '#FED52B');
+    let outer = '';
+    for (let i = 0; i < 8; i++) {
+      const a = i * 45 * Math.PI / 180;
+      const dx = Math.cos(a) * 35;
+      const dy = Math.sin(a) * 35;
+      const cx = 60 + dx, cy = 54 + dy;
+      outer += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="16" ry="24" fill="${fill}" stroke="${stroke}" stroke-width="2" transform="rotate(${i * 45 + 22.5} ${cx.toFixed(1)} ${cy.toFixed(1)})"/>`;
+    }
+    let inner = '';
+    for (let i = 0; i < 6; i++) {
+      const a = i * 60 * Math.PI / 180;
+      const dx = Math.cos(a) * 18;
+      const dy = Math.sin(a) * 18;
+      inner += `<circle cx="${(60 + dx).toFixed(1)}" cy="${(54 + dy).toFixed(1)}" r="8" fill="${fill2}" stroke="${stroke}" stroke-width="1.4"/>`;
+    }
+    return `${base(f, mode, opts)}
+      <g>${outer}</g>
+      <g>${inner}</g>
+      <circle cx="60" cy="54" r="10" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
+  }
+
   const DRAWERS = {
     rose: drawRose, poppy: drawPoppy, anemone: drawAnemone, sunflower: drawSunflower,
     daisy: drawDaisy, tulip: drawTulip, ranunculus: drawRanunculus, lavender: drawLavender,
     forgetmenot: drawForgetmenot, sakura: drawSakura, bluebell: drawBluebell,
+    aster: drawAster, zinnia: drawZinnia,
   };
 
   function flowerInner(type, mode, opts) {
