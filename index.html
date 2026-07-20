@@ -38,13 +38,6 @@
       <p class="tagline">A garden of small moments, opening one day at a time</p>
     </header>
 
-    <div class="stats-bar" id="statsBar">
-      <div class="stat" id="statStreak"><span class="stat-num" id="streakNum">0</span><span class="stat-lbl">day streak</span></div>
-      <div class="stat"><span class="stat-num" id="monthNum">0</span><span class="stat-lbl">blooms this month</span></div>
-      <div class="stat"><span class="stat-num" id="collNum">0/16</span><span class="stat-lbl">flowers grown</span></div>
-      <button class="today-cta" id="todayCta" type="button"></button>
-    </div>
-
     <nav class="month-nav">
       <button id="prevMonth" class="nav-btn" aria-label="Previous">‹</button>
       <div class="month-label">
@@ -68,6 +61,14 @@
       <button id="futureBtn" class="today-btn">✉ Dear future me</button>
       <button id="exportBtn" class="today-btn" hidden>Save my year as an image</button>
       <button id="todayBtn" class="today-btn">Back to Today</button>
+    </div>
+
+    <!-- quiet progress summary, tucked below the garden -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat" id="statStreak"><span class="stat-num" id="streakNum">0</span><span class="stat-lbl">day streak</span></div>
+      <div class="stat"><span class="stat-num" id="monthNum">0</span><span class="stat-lbl">blooms this month</span></div>
+      <div class="stat"><span class="stat-num" id="collNum">0/16</span><span class="stat-lbl">flowers grown</span></div>
+      <button class="today-cta" id="todayCta" type="button"></button>
     </div>
   </div>
 

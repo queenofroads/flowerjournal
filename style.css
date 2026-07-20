@@ -82,7 +82,7 @@ body::before {
   gap: 10px;
   justify-content: center;
   align-items: stretch;
-  margin: 0 auto 34px;
+  margin: 34px auto 0;
 }
 
 .stat {
