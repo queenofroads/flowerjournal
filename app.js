@@ -665,7 +665,7 @@
           total++;
           const f = FLOWERS[entry.flower] || FLOWERS.rose;
           const note = (entry.text || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
-          body += `<div class="yp-cell filled${weekend}${today}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' — ' + note : ''}">
+          body += `<div class="yp-cell filled${weekend}${today}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' · ' + note : ''}">
             <span class="yp-dnum">${d}</span>
             <span class="yp-wd">${WD[dow]}</span>
             <div class="yp-fl">${flowerHeadSVG(entry.flower, 'color')}</div>
@@ -1112,7 +1112,7 @@
   });
   window.addEventListener('resize', () => { if (currentView === 'ring') layoutRing(); });
 
-  // Cover / intro screen — a diary you turn through, page by page
+  // Cover / intro screen: a diary you turn through, page by page
   const coverScreen = document.getElementById('coverScreen');
   const book = document.getElementById('book');
   const startBtn = document.getElementById('startBtn');
@@ -1241,7 +1241,7 @@
       saveFutureBtn.textContent = 'Reseal';
     } else {
       futureText.value = '';
-      futureSub.textContent = 'write it now — read it in five years';
+      futureSub.textContent = 'write it now, read it in five years';
       clearFutureBtn.hidden = true;
       saveFutureBtn.textContent = 'Seal this letter';
     }
@@ -1268,7 +1268,7 @@
   if (clearFutureBtn) clearFutureBtn.addEventListener('click', () => {
     localStorage.removeItem(FUTURE_KEY);
     futureText.value = '';
-    futureSub.textContent = 'write it now — read it in five years';
+    futureSub.textContent = 'write it now, read it in five years';
     clearFutureBtn.hidden = true;
     saveFutureBtn.textContent = 'Seal this letter';
     futureText.focus();
