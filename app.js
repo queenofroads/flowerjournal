@@ -103,11 +103,13 @@
     const stemCol = mode === 'ink' ? PENCIL.stroke : f.leafInk;
     const leafStroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.leaf;
+    // the stem runs up under the flower head (drawn behind the petals) so the
+    // bloom, stem and leaves read as one connected plant
     return `<g stroke-linejoin="round">
-      <path d="M60 95 C60 108 60 112 60 117" fill="none" stroke="${stemCol}" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M60 106 C46 99 37 105 35 117 C49 117 57 113 60 106 Z" fill="${fill}" stroke="${leafStroke}" stroke-width="2"/>
-      <path d="M60 99 C74 92 83 98 85 110 C71 110 63 106 60 99 Z" fill="${fill}" stroke="${leafStroke}" stroke-width="2"/>
-      ${mode === 'ink' ? '' : `<g fill="none" stroke="${stemCol}" stroke-width="1" stroke-linecap="round" opacity="0.5"><path d="M58 108 C51 107 44 110 39 115"/><path d="M60 101 C69 100 76 103 81 108"/></g>`}
+      <path d="M60 58 C61 78 59 98 60 117" fill="none" stroke="${stemCol}" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M60 104 C46 97 37 103 35 115 C49 115 57 111 60 104 Z" fill="${fill}" stroke="${leafStroke}" stroke-width="2"/>
+      <path d="M60 96 C74 89 83 95 85 107 C71 107 63 103 60 96 Z" fill="${fill}" stroke="${leafStroke}" stroke-width="2"/>
+      ${mode === 'ink' ? '' : `<g fill="none" stroke="${stemCol}" stroke-width="1" stroke-linecap="round" opacity="0.5"><path d="M58 105 C51 104 44 107 39 112"/><path d="M60 98 C69 97 76 100 81 105"/></g>`}
     </g>`;
   }
 
