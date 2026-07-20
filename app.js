@@ -596,12 +596,15 @@
       ? `${bloomedThisMonth} bloom${bloomedThisMonth === 1 ? '' : 's'} this month`
       : 'a page waiting to bloom';
 
-    grid.querySelectorAll('.day-card:not(.empty)').forEach(card => {
+    grid.querySelectorAll('.day-card:not(.empty)').forEach((card, idx) => {
       card.addEventListener('click', () => openModal(card.dataset.key));
       card.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(card.dataset.key); }
       });
       if (!ring && !prefersReducedMotion) attachTilt(card);
+      // gentle staggered float so the whole grid breathes, like a garden in a soft breeze
+      const col = idx % 7;
+      card.style.setProperty('--fd', `${(-(col * 0.55 + (idx % 3) * 0.4)).toFixed(2)}s`);
       const fsvg = card.querySelector('.day-flower svg');
       if (fsvg) fsvg.style.animationDelay = `${(Math.random() * 2.6).toFixed(2)}s`;
       if (card.dataset.key === justSavedKey) {
@@ -696,13 +699,18 @@
 
   function attachTilt(card) {
     const maxTilt = 8;
+    // set tilt as CSS vars so it composes with the ambient float animation
     card.addEventListener('mousemove', e => {
       const rect = card.getBoundingClientRect();
       const px = (e.clientX - rect.left) / rect.width - 0.5;
       const py = (e.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `translateY(-3px) rotateX(${(-py * maxTilt).toFixed(2)}deg) rotateY(${(px * maxTilt).toFixed(2)}deg)`;
+      card.style.setProperty('--tx', `${(-py * maxTilt).toFixed(2)}deg`);
+      card.style.setProperty('--ty', `${(px * maxTilt).toFixed(2)}deg`);
     });
-    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    card.addEventListener('mouseleave', () => {
+      card.style.setProperty('--tx', '0deg');
+      card.style.setProperty('--ty', '0deg');
+    });
   }
 
   function spawnSparkles(card) {
