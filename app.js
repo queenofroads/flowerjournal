@@ -455,6 +455,7 @@
   let pendingPhoto = null;
   let selectedFlower = null;
   let selectedMood = null;
+  let editMode = false;
   let justSavedKey = null;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -471,8 +472,18 @@
   const viewYearBtn = document.getElementById('viewYear');
 
   const modalOverlay = document.getElementById('modalOverlay');
-  const modalDate = document.getElementById('modalDate');
-  const modalFlowerDisplay = document.getElementById('modalFlowerDisplay');
+  const postcard = document.getElementById('postcard');
+  const pcWeekday = document.getElementById('pcWeekday');
+  const pcDayN = document.getElementById('pcDayN');
+  const pcMon = document.getElementById('pcMon');
+  const pcMark = document.getElementById('pcMark');
+  const pcPhotoEmpty = document.getElementById('pcPhotoEmpty');
+  const pcMoodCap = document.getElementById('pcMoodCap');
+  const pcEmptyNote = document.getElementById('pcEmptyNote');
+  const pcEdit = document.getElementById('pcEdit');
+  const pcEditToggle = document.getElementById('pcEditToggle');
+  const pcPrevBtn = document.getElementById('pcPrev');
+  const pcNextBtn = document.getElementById('pcNext');
   const flowerPicker = document.getElementById('flowerPicker');
   const moodPicker = document.getElementById('moodPicker');
   const memoryText = document.getElementById('memoryText');
@@ -764,12 +775,30 @@
       btn.addEventListener('click', () => {
         selectedFlower = btn.dataset.type;
         updateFlowerPickerSelection();
-        modalFlowerDisplay.innerHTML = stampPreviewHTML(selectedFlower);
-        modalFlowerDisplay.classList.remove('pulse');
-        void modalFlowerDisplay.offsetWidth;
-        modalFlowerDisplay.classList.add('pulse');
+        paintPostcard(selectedFlower);
       });
     });
+  }
+
+  // recolour the whole postcard to the day's flower, and stamp its bloom
+  function paintPostcard(type) {
+    const f = FLOWERS[type] || FLOWERS.rose;
+    postcard.style.setProperty('--stamp-bg', f.bg);
+    // choose ink that stays legible whether the bloom's colour is light or deep
+    const dark = isDarkColor(f.bg);
+    postcard.classList.toggle('on-dark', dark);
+    postcard.classList.toggle('on-light', !dark);
+    pcMark.innerHTML = flowerHeadSVG(type, 'color');
+    postcard.classList.remove('repaint');
+    void postcard.offsetWidth;
+    postcard.classList.add('repaint');
+  }
+
+  function isDarkColor(hex) {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+    // perceived luminance (0-255); below ~150 reads as a deep colour needing light ink
+    return (0.299 * r + 0.587 * g + 0.114 * b) < 150;
   }
 
   function updateFlowerPickerSelection() {
@@ -787,8 +816,14 @@
       btn.addEventListener('click', () => {
         selectedMood = btn.dataset.key;
         updateMoodPickerSelection();
+        updateMoodCaption();
       });
     });
+  }
+
+  function updateMoodCaption() {
+    const mood = MOODS.find(m => m.key === selectedMood);
+    pcMoodCap.textContent = mood ? mood.label : 'Today';
   }
 
   function updateMoodPickerSelection() {
@@ -797,37 +832,31 @@
     });
   }
 
-  function stampPreviewHTML(type) {
-    const f = FLOWERS[type] || FLOWERS.rose;
-    let dnum = '', mon = '';
-    if (activeDateKey) {
-      const p = activeDateKey.split('-');
-      dnum = String(Number(p[2]));
-      mon = MONTH_ABBR[Number(p[1]) - 1];
-    }
-    return `<div class="stamp" style="--stamp-bg:${f.bg}"><div class="stamp-face">
-      <span class="stamp-date">${dnum}<small>${mon}</small></span>
-      <div class="day-flower">${flowerSVG(type, 'color')}</div>
-    </div></div>`;
-  }
-
-  function openModal(key) {
+  function openModal(key, forceEdit) {
+    const firstOpen = modalOverlay.hidden;
     activeDateKey = key;
     const [y, m, d] = key.split('-').map(Number);
     const displayDate = new Date(y, m - 1, d);
-    modalDate.textContent = displayDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
     const entry = entries[key];
+    // empty days open ready to write; filled days open as a page you read, then Edit
+    editMode = forceEdit !== undefined ? forceEdit : !entry;
+
     selectedFlower = entry ? entry.flower : dayFlowerType(key);
     selectedMood = entry ? entry.mood : null;
     pendingPhoto = entry ? entry.photo : null;
 
-    modalFlowerDisplay.innerHTML = stampPreviewHTML(selectedFlower);
+    // header: weekday + big faded date + the day's bloom on the stamp
+    pcWeekday.textContent = displayDate.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
+    pcDayN.textContent = String(d);
+    pcMon.textContent = MONTH_ABBR[m - 1];
+    paintPostcard(selectedFlower);
+
     updateFlowerPickerSelection();
     updateMoodPickerSelection();
+    updateMoodCaption();
 
     memoryText.value = entry ? entry.text : '';
-    memoryText.placeholder = 'What happened today? What made it worth remembering?';
     if (diaryPrompt) diaryPrompt.textContent = pickBy(PROMPTS, key);
     photoInput.value = '';
     if (pendingPhoto) {
@@ -837,11 +866,50 @@
       photoPreviewWrap.hidden = true;
     }
 
-    deleteEntryBtn.hidden = !entry;
+    applyPostcardMode();
 
     modalOverlay.hidden = false;
     document.body.style.overflow = 'hidden';
-    memoryText.focus();
+    if (firstOpen && !prefersReducedMotion) {
+      postcard.classList.remove('deal-in');
+      void postcard.offsetWidth;
+      postcard.classList.add('deal-in');
+    }
+    if (editMode) setTimeout(() => memoryText.focus(), 60);
+  }
+
+  // toggle the postcard between reading (view) and writing (edit)
+  function applyPostcardMode() {
+    const entry = entries[activeDateKey];
+    postcard.classList.toggle('editing', editMode);
+    postcard.classList.toggle('viewing', !editMode);
+    pcEdit.hidden = !editMode;
+    memoryText.readOnly = !editMode;
+    memoryText.hidden = !editMode && !(entry && entry.text);
+    pcEmptyNote.hidden = editMode || (entry && entry.text);
+    pcPhotoEmpty.style.display = editMode ? '' : 'none';
+    // in view mode with no photo, drop the photo column so the writing fills the page
+    postcard.classList.toggle('no-photo', !editMode && !pendingPhoto);
+
+    pcEditToggle.hidden = editMode;
+    saveEntryBtn.hidden = !editMode;
+    deleteEntryBtn.hidden = !(editMode && entry);
+  }
+
+  function stepDay(delta) {
+    if (!activeDateKey) return;
+    const [y, m, d] = activeDateKey.split('-').map(Number);
+    const nd = new Date(y, m - 1, d + delta);
+    const key = dateKey(nd.getFullYear(), nd.getMonth(), nd.getDate());
+    // keep the calendar underneath in step with the day we're paging to
+    if (nd.getMonth() !== viewDate.getMonth() || nd.getFullYear() !== viewDate.getFullYear()) {
+      viewDate = new Date(nd.getFullYear(), nd.getMonth(), 1);
+      setView(currentView === 'year' ? 'flat' : currentView);
+    }
+    postcard.classList.remove('slide-next', 'slide-prev');
+    void postcard.offsetWidth;
+    postcard.classList.add(delta > 0 ? 'slide-next' : 'slide-prev');
+    openModal(key, false);
   }
 
   function closeModal() {
@@ -902,11 +970,22 @@
     justSavedKey = activeDateKey;
     saveEntryBtn.classList.add('saved');
     setTimeout(() => {
-      closeModal();
+      saveEntryBtn.classList.remove('saved');
+      // stay on the page, now settled into its saved, readable state
+      editMode = false;
+      applyPostcardMode();
       render();
       showAffirmation();
     }, 260);
   });
+
+  pcEditToggle.addEventListener('click', () => {
+    editMode = true;
+    applyPostcardMode();
+    setTimeout(() => memoryText.focus(), 60);
+  });
+  pcPrevBtn.addEventListener('click', () => stepDay(-1));
+  pcNextBtn.addEventListener('click', () => stepDay(1));
 
   deleteEntryBtn.addEventListener('click', () => {
     if (!activeDateKey) return;
@@ -921,7 +1000,13 @@
     if (e.target === modalOverlay) closeModal();
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && !modalOverlay.hidden) closeModal();
+    if (modalOverlay.hidden) return;
+    if (e.key === 'Escape') closeModal();
+    // page between days with the arrow keys, unless the writer is typing
+    if (!editMode && e.target !== memoryText) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); stepDay(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); stepDay(1); }
+    }
   });
 
   function stepView(delta) {

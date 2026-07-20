@@ -137,44 +137,73 @@
     </div>
   </div>
 
-  <!-- Entry Modal -->
+  <!-- Entry : a postage-stamp postcard you open, like Bloomie -->
   <div id="modalOverlay" class="modal-overlay" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalDate">
-      <button id="closeModal" class="close-btn" aria-label="Close">×</button>
+    <div class="postcard-stage" role="dialog" aria-modal="true" aria-labelledby="pcDayNum">
+      <div class="postcard" id="postcard">
+        <div class="pc-face">
+          <header class="pc-head">
+            <div class="pc-datewrap">
+              <span class="pc-weekday" id="pcWeekday"></span>
+              <span class="pc-daynum" id="pcDayNum"><span id="pcDayN"></span><small id="pcMon"></small></span>
+            </div>
+            <div class="pc-brand">
+              <span class="pc-mark" id="pcMark" aria-hidden="true"></span>
+              <span class="pc-brand-name">Flower Journal</span>
+              <span class="pc-brand-sub">tiny memories</span>
+            </div>
+          </header>
 
-      <div class="modal-flower" id="modalFlowerDisplay"></div>
-      <h3 id="modalDate"></h3>
+          <div class="pc-body">
+            <!-- left : the photo, taped into the page -->
+            <div class="pc-left">
+              <div class="pc-photo" id="pcPhotoCard">
+                <span class="pc-tape" aria-hidden="true"></span>
+                <input type="file" id="photoInput" accept="image/*" hidden />
+                <label for="photoInput" class="pc-photo-empty" id="pcPhotoEmpty">
+                  <span class="pc-plus">+</span>
+                  <span class="pc-photo-text">Add today's photo</span>
+                </label>
+                <div id="photoPreviewWrap" class="pc-photo-filled" hidden>
+                  <img id="photoPreview" alt="Memory photo" />
+                  <button id="removePhoto" class="pc-photo-remove" type="button">Remove</button>
+                </div>
+                <span class="pc-photo-cap"><span id="pcMoodCap">Today</span> <span class="pc-heart" aria-hidden="true">♡</span></span>
+              </div>
+            </div>
 
-      <div class="field-group">
-        <label class="field-label">Today's flower</label>
-        <div id="flowerPicker" class="flower-picker"></div>
-      </div>
+            <span class="pc-divider" aria-hidden="true"></span>
 
-      <div class="field-group">
-        <label class="field-label">Today's mood</label>
-        <div id="moodPicker" class="mood-picker"></div>
-      </div>
+            <!-- right : the writing -->
+            <div class="pc-right">
+              <p class="pc-prompt" id="diaryPrompt"></p>
+              <textarea id="memoryText" rows="7" placeholder="Write today down, the big things and the small…"></textarea>
+              <p class="pc-empty-note" id="pcEmptyNote">No thoughts recorded yet.</p>
+            </div>
+          </div>
 
-      <div class="field-group">
-        <label class="diary-label" for="memoryText">Dear diary,</label>
-        <p class="diary-prompt" id="diaryPrompt"></p>
-        <textarea id="memoryText" rows="5" placeholder="Write about today: the big things, the small things…"></textarea>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">A photo from today</label>
-        <div class="photo-upload">
-          <input type="file" id="photoInput" accept="image/*" />
-          <div id="photoPreviewWrap" class="photo-preview-wrap" hidden>
-            <img id="photoPreview" alt="Memory photo preview" />
-            <button id="removePhoto" class="remove-photo-btn" type="button">Remove photo</button>
+          <!-- edit drawer : pick the day's flower + mood -->
+          <div class="pc-edit" id="pcEdit">
+            <div class="field-group">
+              <label class="field-label">Today's flower</label>
+              <div id="flowerPicker" class="flower-picker"></div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Today's mood</label>
+              <div id="moodPicker" class="mood-picker"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="modal-actions">
-        <button id="deleteEntry" class="btn btn-ghost" hidden>Delete entry</button>
-        <button id="saveEntry" class="btn btn-primary">Save memory</button>
+      <!-- frosted glass controls, floating below the stamp -->
+      <div class="pc-controls">
+        <button id="pcPrev" class="pc-ctrl round" aria-label="Previous day">‹</button>
+        <button id="pcEditToggle" class="pc-ctrl">✎ Edit</button>
+        <button id="saveEntry" class="pc-ctrl accent" hidden>Save</button>
+        <button id="deleteEntry" class="pc-ctrl" hidden>Delete</button>
+        <button id="closeModal" class="pc-ctrl">✕ Close</button>
+        <button id="pcNext" class="pc-ctrl round" aria-label="Next day">›</button>
       </div>
     </div>
   </div>

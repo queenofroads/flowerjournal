@@ -914,9 +914,217 @@ body::before {
 
 .modal-overlay[hidden] { display: none; }
 .modal-overlay.closing { animation: overlayOut 0.16s ease forwards; }
-.modal-overlay.closing .modal { animation: popOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards; }
+.modal-overlay.closing .modal,
+.modal-overlay.closing .postcard-stage { animation: popOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards; }
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes overlayOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* ---- Entry postcard : the day, opened like a Bloomie page ---- */
+.postcard-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 640px;
+}
+
+/* the big postage stamp: white scalloped border punched around a colour field */
+.postcard {
+  --stamp-bg: #c44ad0;
+  --pc-ink: rgba(38, 28, 40, 0.92);
+  --pc-ink-soft: rgba(38, 28, 40, 0.6);
+  --pc-faint: rgba(0, 0, 0, 0.11);
+  --pc-line: rgba(38, 28, 40, 0.16);
+  position: relative;
+  width: 100%;
+  padding: 11px;
+  border-radius: 6px;
+  background:
+    radial-gradient(circle 4px at center, #fbf7f2 96%, transparent 100%) top    center / 14px 14px repeat-x,
+    radial-gradient(circle 4px at center, #fbf7f2 96%, transparent 100%) bottom center / 14px 14px repeat-x,
+    radial-gradient(circle 4px at center, #fbf7f2 96%, transparent 100%) left   center / 14px 14px repeat-y,
+    radial-gradient(circle 4px at center, #fbf7f2 96%, transparent 100%) right  center / 14px 14px repeat-y,
+    #ffffff;
+  filter: drop-shadow(0 20px 44px rgba(55, 35, 45, 0.34));
+}
+.postcard.on-dark {
+  --pc-ink: rgba(255, 253, 250, 0.95);
+  --pc-ink-soft: rgba(255, 253, 250, 0.66);
+  --pc-faint: rgba(255, 255, 255, 0.16);
+  --pc-line: rgba(255, 253, 250, 0.24);
+}
+.postcard.deal-in { animation: pcDealIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes pcDealIn {
+  from { transform: translateY(26px) rotate(-2deg) scale(0.94); opacity: 0; }
+  to { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
+}
+.postcard.slide-next { animation: pcSlideNext 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.postcard.slide-prev { animation: pcSlidePrev 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes pcSlideNext { from { transform: translateX(28px); opacity: 0.3; } to { transform: translateX(0); opacity: 1; } }
+@keyframes pcSlidePrev { from { transform: translateX(-28px); opacity: 0.3; } to { transform: translateX(0); opacity: 1; } }
+
+.pc-face {
+  position: relative;
+  background: var(--stamp-bg);
+  border-radius: 3px;
+  padding: 20px 22px 22px;
+  max-height: 78vh;
+  overflow-y: auto;
+  color: var(--pc-ink);
+  transition: background 0.45s ease;
+}
+.postcard.repaint .pc-face { animation: pcTint 0.5s ease; }
+@keyframes pcTint { 0% { filter: brightness(1.12); } 100% { filter: brightness(1); } }
+
+/* header : weekday, a big tone-on-tone date, and the journal mark */
+.pc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+.pc-weekday { display: block; font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.2em; color: var(--pc-ink-soft); }
+.pc-daynum { display: block; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 3.4rem; line-height: 0.9; color: var(--pc-faint); letter-spacing: 0.01em; }
+.pc-daynum small { font-family: 'Quicksand', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.18em; margin-left: 6px; }
+.pc-brand { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; padding-top: 2px; }
+.pc-mark { width: 26px; height: 26px; margin-bottom: 2px; }
+.pc-mark svg { width: 100%; height: 100%; overflow: visible; }
+.pc-brand-name { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.05rem; color: var(--pc-ink); line-height: 1; }
+.pc-brand-sub { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.54rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--pc-ink-soft); }
+
+/* body : photo on the left, writing on the right, a perforated seam between */
+.pc-body { display: grid; grid-template-columns: 1fr 1px 1.15fr; gap: 18px; align-items: stretch; margin-top: 8px; }
+.pc-divider { align-self: stretch; width: 0; border-left: 2px dashed var(--pc-line); }
+
+.pc-left { display: flex; }
+.pc-photo {
+  position: relative;
+  width: 100%;
+  background: #fffdf8;
+  border-radius: 3px;
+  padding: 12px 12px 30px;
+  transform: rotate(-1.6deg);
+  box-shadow: 0 6px 16px rgba(30, 20, 25, 0.22);
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
+}
+.pc-tape {
+  position: absolute;
+  top: -9px; left: 50%;
+  width: 74px; height: 22px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: rgba(255, 244, 200, 0.72);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border-left: 1px dashed rgba(0,0,0,0.06);
+  border-right: 1px dashed rgba(0,0,0,0.06);
+}
+.pc-photo-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  border: 1.5px dashed #d7cdbb;
+  border-radius: 3px;
+  color: #9c9182;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+.pc-photo-empty:hover { border-color: var(--accent); color: var(--accent); background: #fff8f4; }
+.pc-plus { font-size: 1.7rem; line-height: 1; font-weight: 300; }
+.pc-photo-text { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.02em; }
+.pc-photo-filled { position: relative; flex: 1; display: flex; }
+.pc-photo-filled img { width: 100%; height: 100%; min-height: 150px; object-fit: cover; border-radius: 2px; }
+.pc-photo-remove {
+  position: absolute; top: 6px; right: 6px;
+  background: rgba(20, 14, 18, 0.62); color: #fff; border: none;
+  font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.62rem;
+  padding: 3px 8px; border-radius: 999px; cursor: pointer;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.pc-photo-cap {
+  position: absolute; left: 0; right: 0; bottom: 9px;
+  text-align: center;
+  font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.05rem; color: #8b8172;
+}
+.pc-heart { color: var(--accent); }
+/* in view mode with no photo, the photo column collapses so writing fills the page */
+.postcard.no-photo .pc-body { grid-template-columns: 1fr; }
+.postcard.no-photo .pc-left,
+.postcard.no-photo .pc-divider { display: none; }
+
+/* writing panel : a typewritten little memory */
+.pc-right { display: flex; flex-direction: column; }
+.pc-prompt {
+  margin: 2px 0 10px;
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.02rem;
+  line-height: 1.35;
+  color: var(--pc-ink);
+}
+.pc-prompt:empty { display: none; }
+#memoryText {
+  flex: 1;
+  min-height: 128px;
+  background: transparent;
+  background-image: repeating-linear-gradient(transparent 0 27px, var(--pc-line) 27px 28px);
+  background-attachment: local;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  line-height: 28px;
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: 0.95rem;
+  color: var(--pc-ink);
+  resize: none;
+}
+#memoryText::placeholder { color: var(--pc-ink-soft); }
+#memoryText:focus { outline: none; box-shadow: none; border: none; }
+#memoryText[readonly] { cursor: default; }
+.pc-empty-note {
+  margin: 4px 0 0;
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: 0.9rem;
+  color: var(--pc-ink-soft);
+}
+
+/* edit drawer : appears only while writing */
+.pc-edit { margin-top: 16px; border-top: 1.5px dashed var(--pc-line); padding-top: 14px; }
+.pc-edit[hidden] { display: none; }
+.pc-edit .field-label { color: var(--pc-ink-soft); }
+.pc-edit .pick-btn { border-color: var(--pc-line); background: rgba(255, 255, 255, 0.72); }
+.pc-edit .pick-btn.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.5), 0 4px 12px rgba(0,0,0,0.2); }
+
+/* frosted glass controls floating under the stamp */
+.pc-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pc-ctrl {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  backdrop-filter: blur(16px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  padding: 11px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(60, 45, 50, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.16s ease;
+}
+.pc-ctrl:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.82); }
+.pc-ctrl:active { transform: translateY(0) scale(0.96); }
+.pc-ctrl.round { width: 46px; height: 46px; padding: 0; font-size: 1.35rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.pc-ctrl.accent { background: var(--accent); color: #fff; border-color: transparent; box-shadow: 0 8px 22px rgba(224, 88, 122, 0.4); }
+.pc-ctrl.accent:hover { background: #d84e70; }
+.pc-ctrl.accent.saved { animation: savedPulse 0.4s ease; }
 
 .modal {
   position: relative;
@@ -1039,19 +1247,6 @@ body::before {
   line-height: 28px;
 }
 
-/* lined diary-paper writing area */
-#memoryText {
-  background-color: #fffdf7;
-  background-image: repeating-linear-gradient(#fffdf7 0 27px, rgba(120, 90, 70, 0.16) 27px 28px);
-  background-attachment: local;
-  border: 1px solid var(--line);
-  border-left: 2px solid rgba(224, 88, 122, 0.4);
-  line-height: 28px;
-  padding: 5px 14px 8px;
-  font-size: 1rem;
-}
-#memoryText:focus { box-shadow: 0 0 0 4px rgba(224, 88, 122, 0.14); border-color: var(--accent); border-left: 2px solid var(--accent); }
-
 .flower-picker, .mood-picker { display: flex; flex-wrap: wrap; gap: 9px; }
 
 .pick-btn {
@@ -1154,4 +1349,15 @@ textarea.nudge { animation: nudge 0.4s ease; }
   .pick-btn { width: 48px; height: 48px; }
   .footer-actions { flex-direction: column; align-items: stretch; }
   .footer-actions .today-btn { width: 100%; }
+
+  /* postcard stacks: photo above the writing, seam turns horizontal */
+  .pc-face { padding: 16px 15px 18px; }
+  .pc-body { grid-template-columns: 1fr; gap: 14px; }
+  .pc-divider { display: none; }
+  .pc-daynum { font-size: 2.8rem; }
+  .pc-photo { min-height: 150px; transform: rotate(-1deg); }
+  .pc-right { border-top: 2px dashed var(--pc-line); padding-top: 12px; }
+  .postcard.viewing .pc-right { border-top: none; padding-top: 0; }
+  .pc-ctrl { font-size: 0.76rem; padding: 10px 15px; }
+  .pc-ctrl.round { width: 42px; height: 42px; }
 }
