@@ -1244,7 +1244,7 @@
     }
   }
   if (coverPageArt) coverPageArt.innerHTML = flowerHeadSVG('cherryblossom', 'color');
-  if (welcomeFlower) welcomeFlower.innerHTML = flowerHeadSVG('rose', 'color');
+  if (welcomeFlower) welcomeFlower.innerHTML = flowerHeadSVG('cherryblossom', 'color');
   if (coverYear) coverYear.textContent = String(new Date().getFullYear());
   if (leafCover) leafCover.style.zIndex = 3;
   if (leafWelcome) leafWelcome.style.zIndex = 2;

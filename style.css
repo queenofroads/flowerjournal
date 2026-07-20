@@ -700,8 +700,8 @@ body::before {
 .base-inner { text-align: center; padding: 20px; opacity: 0.92; }
 .page-flower { width: 96px; height: 96px; margin: 0 auto 6px; }
 .page-flower svg { width: 100%; height: 100%; overflow: visible; }
-.page-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.9rem; color: var(--ink); margin: 0; }
-.page-sub { font-family: 'Caveat', cursive; font-size: 1.3rem; color: var(--ink-soft); margin: 0; }
+.page-hello { font-family: 'Parisienne', cursive; font-weight: 400; font-size: 2.4rem; line-height: 1.1; color: #b0436a; margin: 0; padding-bottom: 4px; }
+.page-sub { font-family: 'Quicksand', sans-serif; font-weight: 600; font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: #b58aa0; margin: 4px 0 0; }
 
 /* each page lifts and turns away, revealing the page beneath — no 3D backface,
    so it renders correctly on every browser (incl. mobile Safari) */
@@ -736,13 +736,18 @@ body::before {
 
 /* cream welcome page */
 .welcome-face {
-  background: linear-gradient(#fffdf8, #f7f0e2);
+  /* a soft spring morning: a whisper of green and blossom on warm paper */
+  background:
+    radial-gradient(circle at 16% 10%, rgba(150, 210, 165, 0.18), transparent 42%),
+    radial-gradient(circle at 86% 90%, rgba(246, 172, 197, 0.22), transparent 46%),
+    radial-gradient(circle at 88% 14%, rgba(255, 214, 150, 0.16), transparent 40%),
+    linear-gradient(#fffdfb, #fdf3f3);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 34px 30px;
+  padding: 40px 34px;
 }
 
 .book-spine-edge {
@@ -868,17 +873,19 @@ body::before {
 .inside-owner { font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.25rem; color: var(--ink-soft); margin: 0; }
 
 /* the welcome / invitation page */
-.w-eyebrow { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 0.82rem; letter-spacing: 0.01em; color: var(--accent); margin: 0 0 14px; }
-.w-hello { font-family: 'Caveat', cursive; font-weight: 700; font-size: 2.3rem; color: var(--ink); margin: 0; }
-.w-note { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 1rem; line-height: 1.75; color: #6b6158; margin: 16px auto 14px; max-width: 26ch; }
-.w-flower { width: 60px; height: 60px; margin: 2px auto 8px; }
+.w-eyebrow { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.62rem; letter-spacing: 0.24em; text-transform: uppercase; color: #cf7d9c; margin: 0 0 18px; }
+.w-hello { font-family: 'Parisienne', cursive; font-weight: 400; font-size: 3.5rem; line-height: 1.1; color: #b0436a; margin: 0 0 4px; padding-bottom: 6px; }
+.w-note { font-family: 'Quicksand', sans-serif; font-weight: 500; font-size: 1.02rem; line-height: 1.9; color: #6f6a63; margin: 12px auto 20px; max-width: 30ch; }
+.w-flower { width: 66px; height: 66px; margin: 4px auto 12px; animation: cuteBob 3.4s ease-in-out infinite; transform-origin: 50% 80%; }
 .w-flower svg { width: 100%; height: 100%; overflow: visible; }
 .turn-cue {
-  font-family: 'Caveat', cursive;
+  font-family: 'Quicksand', sans-serif;
   font-weight: 700;
-  font-size: 1.3rem;
-  color: var(--accent);
-  margin: 8px 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #d84e70;
+  margin: 6px 0 0;
   animation: cueNudge 1.8s ease-in-out infinite;
 }
 @keyframes cueNudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
@@ -901,7 +908,7 @@ body::before {
 .cover-btn:active { transform: translateY(0) scale(0.97); }
 .cover-btn.gone { opacity: 0; transform: translateY(10px); pointer-events: none; }
 
-.turn-hint { font-family: 'Caveat', cursive; font-weight: 700; font-size: 1.25rem; color: var(--ink-soft); margin: 0; min-height: 1.2em; transition: opacity 0.3s ease; }
+.turn-hint { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: #b58aa0; margin: 0; min-height: 1.2em; transition: opacity 0.3s ease; }
 .turn-hint.gone { opacity: 0; }
 
 /* ---- Modal ---- */
