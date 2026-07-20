@@ -6,23 +6,25 @@
   // Muted-warm botanical palette, echoing hand-painted gouache/watercolor references.
   // Each flower carries a vivid, contrasting stamp background (Bloomie-style),
   // so a captured day turns from a pale blank stamp into a colourful one.
+  // Flat paper-cut palette: bold base-card backgrounds, accent-colour petals,
+  // emerald/olive foliage. No black outlines; shapes read by colour contrast.
   const FLOWERS = {
-    rose:        { label: 'Rose',        petal: '#e8a0aa', petal2: '#f2c2c8', ink: '#bd6d78', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#3d7ff2', draw: 'rose' },
-    poppy:       { label: 'Poppy',       petal: '#e86a50', petal2: '#f28e77', ink: '#b3452f', leaf: '#2f8f6a', leafInk: '#1f6e50', core: '#3d3a46', bg: '#22b3bf', draw: 'poppy' },
-    anemone:     { label: 'Anemone',     petal: '#bcd2dc', petal2: '#dbe9ee', ink: '#5f7d8a', core: '#2a2942', bg: '#f2683d', leaf: '#3f8f5e', leafInk: '#2c6b43', draw: 'anemone' },
-    sunflower:   { label: 'Sunflower',   petal: '#f0be48', petal2: '#f7d574', ink: '#cf9528', leaf: '#3f8f5e', leafInk: '#2c6b43', core: '#7a4e29', bg: '#7a5cf0', draw: 'sunflower' },
-    daisy:       { label: 'Daisy',       petal: '#ffffff', petal2: '#ffffff', ink: '#d9d0e0', leaf: '#3f8f5e', leafInk: '#2c6b43', core: '#f0be48', coreInk: '#cf9528', bg: '#f24b8b', draw: 'daisy' },
-    tulip:       { label: 'Tulip',       petal: '#e8788f', petal2: '#f2a6b6', ink: '#bf5a72', leaf: '#2f8f5e', leafInk: '#1f6e43', bg: '#3fb37a', draw: 'tulip' },
-    ranunculus:  { label: 'Ranunculus',  petal: '#ee9a80', petal2: '#f6c1ae', ink: '#cd7157', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#6c5cf0', draw: 'ranunculus' },
-    lavender:    { label: 'Lavender',    petal: '#a98ecd', petal2: '#c4addf', ink: '#7c62a6', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f5b70f', draw: 'lavender' },
-    forgetmenot: { label: 'Forget-me-not', petal: '#8fb6e6', petal2: '#b3d0f0', ink: '#5f88bf', core: '#f0be48', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#ef5a7a', draw: 'forgetmenot' },
-    cherryblossom: { label: 'Cherry blossom', petal: '#f7b9cd', petal2: '#fcd6e1', ink: '#d97fa0', core: '#e0587a', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#3d7ff2', draw: 'sakura' },
-    bluebell:    { label: 'Bluebell',    petal: '#7b7fd6', petal2: '#9ca0e4', ink: '#565aa8', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f5b70f', draw: 'bluebell' },
-    marigold:    { label: 'Marigold',    petal: '#f2913a', petal2: '#f8b566', ink: '#cf6f1e', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#22839f', draw: 'ranunculus' },
-    cosmos:      { label: 'Cosmos',      petal: '#f0a6c4', petal2: '#f7c6da', ink: '#d97fa8', leaf: '#3f8f5e', leafInk: '#2c6b43', core: '#f0be48', coreInk: '#cf9528', bg: '#3fb37a', draw: 'daisy' },
-    crocus:      { label: 'Crocus',      petal: '#9b7ad6', petal2: '#b89ee6', ink: '#7856b0', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f5b70f', draw: 'tulip' },
-    dahlia:      { label: 'Dahlia',      petal: '#dd5b9a', petal2: '#ea86b6', ink: '#b23b76', leaf: '#3f8f5e', leafInk: '#2c6b43', core: '#6b2a4a', seed: '#4a1832', bg: '#22b3bf', draw: 'sunflower' },
-    cornflower:  { label: 'Cornflower',  petal: '#6b86d8', petal2: '#93a9e6', ink: '#4a63ad', core: '#2a2f5a', seed: '#1c2044', leaf: '#3f8f5e', leafInk: '#2c6b43', bg: '#f2913a', draw: 'sunflower' },
+    rose:        { label: 'Rose',        petal: '#FA318A', petal2: '#F7B2D2', ink: '#BA1259', leaf: '#168B46', leafInk: '#5B7318', bg: '#CDBDF6', draw: 'rose' },
+    poppy:       { label: 'Poppy',       petal: '#EE4A36', petal2: '#F99E7B', ink: '#BA1259', core: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#1BB29D', draw: 'poppy' },
+    anemone:     { label: 'Anemone',     petal: '#A3CFFC', petal2: '#CDBDF6', ink: '#2D72D9', core: '#4A0E2B', bg: '#EE4A36', leaf: '#168B46', leafInk: '#5B7318', draw: 'anemone' },
+    sunflower:   { label: 'Sunflower',   petal: '#FED52B', petal2: '#FFB719', ink: '#F05023', leaf: '#168B46', leafInk: '#5B7318', core: '#4A0E2B', seed: '#4A0E2B', bg: '#8D32A7', draw: 'sunflower' },
+    daisy:       { label: 'Daisy',       petal: '#ffffff', petal2: '#ffffff', ink: '#F7B2D2', leaf: '#168B46', leafInk: '#5B7318', core: '#FED52B', coreInk: '#FFB719', bg: '#FA318A', draw: 'daisy' },
+    tulip:       { label: 'Tulip',       petal: '#FA318A', petal2: '#F7B2D2', ink: '#BA1259', leaf: '#168B46', leafInk: '#5B7318', bg: '#1BB29D', draw: 'tulip' },
+    ranunculus:  { label: 'Ranunculus',  petal: '#F05023', petal2: '#F99E7B', ink: '#BA1259', leaf: '#168B46', leafInk: '#5B7318', bg: '#A3CFFC', draw: 'ranunculus' },
+    lavender:    { label: 'Lavender',    petal: '#8D32A7', petal2: '#CDBDF6', ink: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#C2D637', draw: 'lavender' },
+    forgetmenot: { label: 'Forget-me-not', petal: '#2D72D9', petal2: '#A3CFFC', ink: '#4A0E2B', core: '#FED52B', leaf: '#168B46', leafInk: '#5B7318', bg: '#EE4A36', draw: 'forgetmenot' },
+    cherryblossom: { label: 'Cherry blossom', petal: '#F7B2D2', petal2: '#FA318A', ink: '#BA1259', core: '#FA318A', leaf: '#168B46', leafInk: '#5B7318', bg: '#8D32A7', draw: 'sakura' },
+    bluebell:    { label: 'Bluebell',    petal: '#2D72D9', petal2: '#A3CFFC', ink: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#C2D637', draw: 'bluebell' },
+    marigold:    { label: 'Marigold',    petal: '#FFB719', petal2: '#FED52B', ink: '#F05023', leaf: '#168B46', leafInk: '#5B7318', bg: '#8D32A7', draw: 'ranunculus' },
+    cosmos:      { label: 'Cosmos',      petal: '#F7B2D2', petal2: '#F99E7B', ink: '#FA318A', leaf: '#168B46', leafInk: '#5B7318', core: '#FED52B', coreInk: '#FFB719', bg: '#1BB29D', draw: 'daisy' },
+    crocus:      { label: 'Crocus',      petal: '#8D32A7', petal2: '#CDBDF6', ink: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#FA318A', draw: 'tulip' },
+    dahlia:      { label: 'Dahlia',      petal: '#BA1259', petal2: '#FA318A', ink: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', core: '#4A0E2B', seed: '#4A0E2B', bg: '#A3CFFC', draw: 'sunflower' },
+    cornflower:  { label: 'Cornflower',  petal: '#2D72D9', petal2: '#A3CFFC', ink: '#1c2044', core: '#4A0E2B', seed: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#EE4A36', draw: 'sunflower' },
   };
 
   const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -97,12 +99,15 @@
   }
 
   function leaves(f, mode) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.leafInk;
+    // flat oversized leaves; the stem and veins are the only line work (tonal, not black)
+    const stemCol = mode === 'ink' ? PENCIL.stroke : f.leafInk;
+    const leafStroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.leaf;
-    return `<g fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round">
-      <path d="M60 96 C60 108 60 112 60 116" fill="none" stroke-linecap="round"/>
-      <path d="M60 104 C50 100 44 104 42 112 C52 112 58 110 60 104 Z"/>
-      <path d="M60 100 C70 96 76 100 78 108 C68 108 62 106 60 100 Z"/>
+    return `<g stroke-linejoin="round">
+      <path d="M60 95 C60 108 60 112 60 117" fill="none" stroke="${stemCol}" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M60 106 C46 99 37 105 35 117 C49 117 57 113 60 106 Z" fill="${fill}" stroke="${leafStroke}" stroke-width="2"/>
+      <path d="M60 99 C74 92 83 98 85 110 C71 110 63 106 60 99 Z" fill="${fill}" stroke="${leafStroke}" stroke-width="2"/>
+      ${mode === 'ink' ? '' : `<g fill="none" stroke="${stemCol}" stroke-width="1" stroke-linecap="round" opacity="0.5"><path d="M58 108 C51 107 44 110 39 115"/><path d="M60 101 C69 100 76 103 81 108"/></g>`}
     </g>`;
   }
 
@@ -111,7 +116,7 @@
   }
 
   function drawRose(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     let outer = '';
@@ -129,7 +134,7 @@
   }
 
   function drawPoppy(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     const core = mode === 'ink' ? 'none' : (f.core || '#3d3a46');
@@ -145,7 +150,7 @@
   }
 
   function drawAnemone(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     const core = mode === 'ink' ? 'none' : (f.core || '#33324c');
@@ -168,7 +173,7 @@
   }
 
   function drawSunflower(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     const core = mode === 'ink' ? 'none' : (f.core || '#7a4e29');
@@ -184,7 +189,7 @@
   }
 
   function drawSakura(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const core = mode === 'ink' ? 'none' : (f.core || '#e0587a');
     let petals = '';
@@ -204,7 +209,7 @@
   }
 
   function drawBluebell(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     const stemInk = mode === 'ink' ? PENCIL.stroke : f.leafInk;
@@ -222,7 +227,7 @@
   }
 
   function drawDaisy(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const core = mode === 'ink' ? 'none' : (f.core || '#f0be48');
     const coreInk = mode === 'ink' ? PENCIL.stroke : (f.coreInk || '#cf9528');
@@ -235,7 +240,7 @@
   }
 
   function drawTulip(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     // cup with three pointed petals on top, rounded base tapering to the stem
@@ -251,7 +256,7 @@
   }
 
   function drawRanunculus(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     let r1 = ''; for (let i = 0; i < 10; i++) r1 += teardrop(60, 56, 32, 15, i * 36);
@@ -265,7 +270,7 @@
   }
 
   function drawLavender(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     const spikes = [
@@ -290,7 +295,7 @@
   }
 
   function drawForgetmenot(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : f.ink;
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const fill2 = mode === 'ink' ? 'none' : f.petal2;
     const core = mode === 'ink' ? 'none' : (f.core || '#f0be48');

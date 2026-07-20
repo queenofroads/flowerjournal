@@ -410,6 +410,18 @@ body::before {
 /* empty days are soft translucent glass so the aurora glows faintly through them */
 .is-bud .stamp-face { background: rgba(255, 253, 249, 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 
+/* screen-printed grain over the stamp art, like vintage postage */
+.has-entry .stamp-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.55;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
 .stamp-date {
   position: absolute;
   top: 6px;
@@ -1003,6 +1015,18 @@ body::before {
   color: var(--pc-ink);
   transition: background 0.45s ease;
 }
+/* the same screen-printed grain across the note */
+.pc-face::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='gp'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23gp)'/%3E%3C/svg%3E");
+}
+.pc-face > * { position: relative; z-index: 1; }
 .postcard.repaint .pc-face { animation: pcTint 0.5s ease; }
 @keyframes pcTint { 0% { filter: brightness(1.12); } 100% { filter: brightness(1); } }
 
