@@ -793,12 +793,25 @@
     });
   }
 
+  // the note takes the flower's OWN colour (its petals), so a pink tulip
+  // gives a pink page, a sunflower a golden one, never an unrelated colour
+  function flowerCardColor(f) {
+    const p = f.petal || '#e8a0aa';
+    const h = p.replace('#', '');
+    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    // near-white petals (e.g. daisy) would wash out, so fall back to their heart
+    if (lum > 225) return f.core || f.ink || p;
+    return p;
+  }
+
   // recolour the whole postcard to the day's flower, and stamp its bloom
   function paintPostcard(type) {
     const f = FLOWERS[type] || FLOWERS.rose;
-    postcard.style.setProperty('--stamp-bg', f.bg);
+    const cardBg = flowerCardColor(f);
+    postcard.style.setProperty('--stamp-bg', cardBg);
     // choose ink that stays legible whether the bloom's colour is light or deep
-    const dark = isDarkColor(f.bg);
+    const dark = isDarkColor(cardBg);
     postcard.classList.toggle('on-dark', dark);
     postcard.classList.toggle('on-light', !dark);
     pcMark.innerHTML = flowerHeadSVG(type, 'color');
