@@ -731,7 +731,7 @@
     const container = document.getElementById('bgPetals');
     if (!container || prefersReducedMotion) return;
     const colors = ['#e8a0aa', '#f0be48', '#b9d2dc', '#a98ecd', '#e86a50', '#94a06a', '#8fb6e6'];
-    const count = 12;
+    const count = 6;
     for (let i = 0; i < count; i++) {
       const p = document.createElement('span');
       p.className = 'bg-petal';
