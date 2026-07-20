@@ -22,8 +22,8 @@ body {
   margin: 0;
   font-family: 'Quicksand', sans-serif;
   color: var(--ink);
-  /* clean, calm canvas so the flowers are the hero */
-  background: var(--page);
+  /* a soft warm paper base; the aurora paints the colour on top */
+  background: #fbf7f2;
   min-height: 100vh;
   padding: 48px 18px 80px;
   overflow-x: hidden;
@@ -37,9 +37,41 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.35;
+  opacity: 0.3;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
+
+/* ---- Living aurora background (Bloomie's warm, drifting glow) ---- */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  filter: blur(52px) saturate(1.15);
+}
+.aurora-blob {
+  position: absolute;
+  width: 58vw;
+  height: 58vw;
+  min-width: 340px;
+  min-height: 340px;
+  border-radius: 50%;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  will-change: transform;
+}
+/* warm botanical palette: butter, peach, rose, lilac, mint (brand, not AI-purple) */
+.aurora .b1 { top: -14vw; left: -10vw; background: radial-gradient(circle at 40% 40%, #ffe1a6, transparent 68%); animation: drift1 22s ease-in-out infinite; }
+.aurora .b2 { top: 2vw; right: -14vw; background: radial-gradient(circle at 50% 50%, #ffc4c9, transparent 66%); animation: drift2 27s ease-in-out infinite; }
+.aurora .b3 { bottom: -18vw; left: 8vw; background: radial-gradient(circle at 50% 50%, #e6cdf5, transparent 66%); animation: drift3 31s ease-in-out infinite; }
+.aurora .b4 { bottom: -6vw; right: 2vw; background: radial-gradient(circle at 50% 50%, #bfe9cf, transparent 68%); animation: drift4 25s ease-in-out infinite; }
+.aurora .b5 { top: 34vh; left: 30vw; width: 40vw; height: 40vw; background: radial-gradient(circle at 50% 50%, #ffd9b0, transparent 70%); animation: drift1 29s ease-in-out infinite reverse; }
+
+@keyframes drift1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(6vw, 5vw) scale(1.12); } }
+@keyframes drift2 { 0%, 100% { transform: translate(0, 0) scale(1.05); } 50% { transform: translate(-5vw, 6vw) scale(0.92); } }
+@keyframes drift3 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(7vw, -4vw) scale(1.15); } }
+@keyframes drift4 { 0%, 100% { transform: translate(0, 0) scale(1.08); } 50% { transform: translate(-6vw, -5vw) scale(0.95); } }
 
 .app { max-width: 940px; margin: 0 auto; position: relative; z-index: 1; }
 
@@ -54,12 +86,14 @@ body::before {
 }
 
 .stat {
-  background: var(--card);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 15px;
   padding: 9px 16px;
   text-align: center;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 6px 18px rgba(70, 60, 55, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.7);
   min-width: 86px;
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
@@ -347,10 +381,10 @@ body::before {
   padding: 9px;
   border-radius: 4px;
   background:
-    radial-gradient(circle 3.5px at center, var(--page) 96%, transparent 100%) top    center / 12px 12px repeat-x,
-    radial-gradient(circle 3.5px at center, var(--page) 96%, transparent 100%) bottom center / 12px 12px repeat-x,
-    radial-gradient(circle 3.5px at center, var(--page) 96%, transparent 100%) left   center / 12px 12px repeat-y,
-    radial-gradient(circle 3.5px at center, var(--page) 96%, transparent 100%) right  center / 12px 12px repeat-y,
+    radial-gradient(circle 3.5px at center, #fbf7f2 96%, transparent 100%) top    center / 12px 12px repeat-x,
+    radial-gradient(circle 3.5px at center, #fbf7f2 96%, transparent 100%) bottom center / 12px 12px repeat-x,
+    radial-gradient(circle 3.5px at center, #fbf7f2 96%, transparent 100%) left   center / 12px 12px repeat-y,
+    radial-gradient(circle 3.5px at center, #fbf7f2 96%, transparent 100%) right  center / 12px 12px repeat-y,
     #ffffff;
   filter: drop-shadow(0 3px 8px rgba(70, 60, 55, 0.16));
   transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.22s ease;
@@ -373,7 +407,8 @@ body::before {
   justify-content: center;
 }
 
-.is-bud .stamp-face { background: var(--blank); }
+/* empty days are soft translucent glass so the aurora glows faintly through them */
+.is-bud .stamp-face { background: rgba(255, 253, 249, 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 
 .stamp-date {
   position: absolute;
