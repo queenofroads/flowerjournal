@@ -92,51 +92,6 @@
     </div>
   </div>
 
-  <!-- Cover / intro : a diary you turn through -->
-  <div id="coverScreen" class="cover">
-    <div class="book-stage">
-      <div class="book" id="book">
-        <!-- the journal awaits beneath the last page -->
-        <div class="book-base" aria-hidden="true">
-          <div class="base-inner">
-            <div class="page-flower" id="coverPageArt"></div>
-            <p class="page-hello">your journal</p>
-            <p class="page-sub">awaits…</p>
-          </div>
-        </div>
-
-        <!-- second leaf: the handwritten welcome page -->
-        <div class="leaf" id="leafWelcome">
-          <div class="face welcome-face">
-            <p class="w-eyebrow">a year of small moments</p>
-            <p class="w-hello">Dear you,</p>
-            <p class="w-note">Every day holds one small thing worth keeping. Open today, choose a flower, and write down a line or two. Come back tomorrow, and watch your year quietly bloom.</p>
-            <div class="w-flower" id="welcomeFlower" aria-hidden="true"></div>
-            <p class="turn-cue">turn the page&nbsp;→</p>
-          </div>
-        </div>
-
-        <!-- first leaf: the front cover -->
-        <div class="leaf" id="leafCover">
-          <div class="face cover-face">
-            <span class="book-spine-edge" aria-hidden="true"></span>
-            <div class="cover-embroidery" id="coverEmbroidery" aria-hidden="true"></div>
-            <div class="cover-drift" id="coverDrift" aria-hidden="true"></div>
-            <div class="cover-center">
-              <h1 class="cover-title"><span>Flower</span><span>Journal</span></h1>
-              <p class="cover-tagline">flowers will bloom</p>
-            </div>
-            <span class="cover-year" id="coverYear"></span>
-            <span class="cover-ribbon" aria-hidden="true"></span>
-          </div>
-        </div>
-      </div>
-
-      <button id="startBtn" class="cover-btn">Open the journal</button>
-      <p class="turn-hint" id="turnHint"></p>
-    </div>
-  </div>
-
   <!-- Entry : a postage-stamp postcard you open, like Bloomie -->
   <div id="modalOverlay" class="modal-overlay" hidden>
     <div class="postcard-stage" role="dialog" aria-modal="true" aria-labelledby="pcDayNum">
