@@ -325,18 +325,21 @@
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const core = mode === 'ink' ? 'none' : (f.core || '#FED52B');
+    // organic rounded petals in a radial pattern
     let petals = '';
-    for (let i = 0; i < 12; i++) {
-      const angle = i * 30;
+    for (let i = 0; i < 16; i++) {
+      const angle = (i * 22.5) - 90;
       const a = angle * Math.PI / 180;
-      const dx = Math.cos(a) * 32;
-      const dy = Math.sin(a) * 32;
-      const cx = 60 + dx, cy = 52 + dy;
-      petals += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="14" ry="20" fill="${fill}" stroke="${stroke}" stroke-width="1.8" transform="rotate(${angle} ${cx.toFixed(1)} ${cy.toFixed(1)})"/>`;
+      const dist = 26;
+      const px = 60 + Math.cos(a) * dist;
+      const py = 52 + Math.sin(a) * dist;
+      // blobby petal shape
+      const path = `M${px} ${py} Q${px + Math.cos(a) * 10} ${py + Math.sin(a) * 8} ${px + Math.cos(a) * 12} ${py + Math.sin(a) * 20} Q${px - Math.sin(a) * 8} ${py + Math.cos(a) * 12} ${px} ${py} Z`;
+      petals += `<path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.4"/>`;
     }
     return `${base(f, mode, opts)}
       <g>${petals}</g>
-      <circle cx="60" cy="52" r="12" fill="${core}" stroke="${stroke}" stroke-width="1.6"/>`;
+      <circle cx="60" cy="52" r="13" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
   }
 
   function drawZinnia(f, mode, opts) {
