@@ -667,17 +667,22 @@ body::before {
   align-items: center;
   gap: 22px;
   perspective: 2400px;
-  animation: coverRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* rise on entrance, then breathe gently, like a book held in the light */
+  animation: coverRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both, bookFloat 6s ease-in-out 0.7s infinite;
 }
 
 @keyframes coverRise {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+@keyframes bookFloat {
+  0%, 100% { transform: translateY(0) rotate(-0.4deg); }
+  50% { transform: translateY(-10px) rotate(0.4deg); }
+}
 
 .book {
   position: relative;
-  width: clamp(260px, 82vw, 336px);
+  width: clamp(290px, 88vw, 412px);
   aspect-ratio: 3 / 4;
   cursor: pointer;
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
@@ -725,13 +730,15 @@ body::before {
   box-shadow: 0 18px 42px rgba(150, 90, 110, 0.28);
 }
 
-/* front of the cover — soft blush linen, a cover that blooms */
+/* front of the cover — vivid blossom linen, a cover that blooms */
 .cover-face {
   background:
-    repeating-linear-gradient(0deg, rgba(150, 80, 100, 0.06) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgba(150, 80, 100, 0.05) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 2px, transparent 2px 4px),
-    linear-gradient(150deg, #fce0e7 0%, #f7cad7 54%, #f1b8c9 100%);
+    repeating-linear-gradient(0deg, rgba(150, 60, 90, 0.07) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(150, 60, 90, 0.06) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 4px),
+    radial-gradient(circle at 78% 16%, rgba(255, 214, 150, 0.5), transparent 42%),
+    radial-gradient(circle at 16% 86%, rgba(180, 150, 235, 0.4), transparent 44%),
+    linear-gradient(150deg, #fbb8ce 0%, #f295b6 52%, #ea7ba6 100%);
 }
 
 /* cream welcome page */
@@ -937,9 +944,15 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   width: 100%;
-  max-width: 640px;
+  max-width: 720px;
+}
+/* the card gently floats (the controls below stay steady, easy to tap) */
+.pc-float { width: 100%; animation: pcFloat 5.5s ease-in-out infinite; }
+@keyframes pcFloat {
+  0%, 100% { transform: translateY(0) rotate(-0.5deg); }
+  50% { transform: translateY(-9px) rotate(0.5deg); }
 }
 
 /* the big postage stamp: white scalloped border punched around a colour field */
@@ -981,8 +994,8 @@ body::before {
   position: relative;
   background: var(--stamp-bg);
   border-radius: 3px;
-  padding: 20px 22px 22px;
-  max-height: 78vh;
+  padding: 26px 28px 28px;
+  max-height: 80vh;
   overflow-y: auto;
   color: var(--pc-ink);
   transition: background 0.45s ease;
@@ -992,9 +1005,9 @@ body::before {
 
 /* header : weekday, a big tone-on-tone date, and the journal mark */
 .pc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
-.pc-weekday { display: block; font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.2em; color: var(--pc-ink-soft); }
-.pc-daynum { display: block; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 3.4rem; line-height: 0.9; color: var(--pc-faint); letter-spacing: 0.01em; }
-.pc-daynum small { font-family: 'Quicksand', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.18em; margin-left: 6px; }
+.pc-weekday { display: block; font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.2em; color: var(--pc-ink-soft); }
+.pc-daynum { display: block; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 4rem; line-height: 0.9; color: var(--pc-faint); letter-spacing: 0.01em; }
+.pc-daynum small { font-family: 'Quicksand', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.18em; margin-left: 7px; }
 .pc-brand { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; padding-top: 2px; }
 .pc-mark { width: 26px; height: 26px; margin-bottom: 2px; }
 .pc-mark svg { width: 100%; height: 100%; overflow: visible; }
@@ -1067,27 +1080,27 @@ body::before {
 /* writing panel : a typewritten little memory */
 .pc-right { display: flex; flex-direction: column; }
 .pc-prompt {
-  margin: 2px 0 10px;
+  margin: 4px 0 12px;
   font-family: 'Fraunces', Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  font-size: 1.02rem;
-  line-height: 1.35;
+  font-size: 1.16rem;
+  line-height: 1.4;
   color: var(--pc-ink);
 }
 .pc-prompt:empty { display: none; }
 #memoryText {
   flex: 1;
-  min-height: 128px;
+  min-height: 150px;
   background: transparent;
-  background-image: repeating-linear-gradient(transparent 0 27px, var(--pc-line) 27px 28px);
+  background-image: repeating-linear-gradient(transparent 0 29px, var(--pc-line) 29px 30px);
   background-attachment: local;
   border: none;
   border-radius: 0;
   padding: 0;
-  line-height: 28px;
+  line-height: 30px;
   font-family: 'Courier New', 'Courier', monospace;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--pc-ink);
   resize: none;
 }
