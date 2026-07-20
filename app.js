@@ -695,9 +695,12 @@
             <div class="yp-fl">${flowerHeadSVG(entry.flower, 'color')}</div>
           </div>`;
         } else {
+          // empty days still show their own flower as pencil line-art, so the
+          // year planner reads like the flat calendar: every day is a bloom
           body += `<div class="yp-cell${weekend}${today}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}">
             <span class="yp-dnum">${d}</span>
             <span class="yp-wd">${WD[dow]}</span>
+            <div class="yp-fl yp-bud">${flowerHeadSVG(dayFlowerType(key), 'ink')}</div>
           </div>`;
         }
       }

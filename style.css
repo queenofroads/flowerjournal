@@ -613,6 +613,9 @@ body::before {
 
 .yp-fl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .yp-fl svg { width: 76%; height: 76%; overflow: visible; }
+/* empty days: a faint pencil bloom, so every day reads like the flat calendar */
+.yp-bud { opacity: 0.4; }
+.yp-cell:not(.void):not(.filled):hover .yp-bud { opacity: 0.7; }
 
 .yp-cell:not(.void):not(.filled):hover { background: #fbeede; }
 .yp-cell.filled:hover { transform: scale(1.22); z-index: 4; box-shadow: 0 5px 13px rgba(120, 80, 70, 0.28); border-radius: 4px; }
