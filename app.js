@@ -29,6 +29,7 @@
     zinnia:      { label: 'Zinnia',      petal: '#EE4A36', petal2: '#FFB719', ink: '#BA1259', core: '#FFB719', leaf: '#168B46', leafInk: '#5B7318', bg: '#CDBDF6', draw: 'zinnia' },
     camellia:    { label: 'Camellia',    petal: '#F7B2D2', petal2: '#FA318A', ink: '#BA1259', core: '#FED52B', leaf: '#168B46', leafInk: '#5B7318', bg: '#A3CFFC', draw: 'ranunculus' },
     hibiscus:    { label: 'Hibiscus',    petal: '#FA318A', petal2: '#F99E7B', ink: '#BA1259', core: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#1BB29D', draw: 'poppy' },
+    wildflower:  { label: 'Wildflower',  petal: '#F7A770', petal2: 'rgba(255,255,255,0.5)', ink: '#E8873A', core: '#FFB719', coreInk: '#F05023', leaf: '#168B46', leafInk: '#5B7318', bg: '#FFF5E8', draw: 'wildflower' },
   };
 
   const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -342,6 +343,38 @@
       <circle cx="60" cy="52" r="13" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
   }
 
+  function drawWildflower(f, mode, opts) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const core = mode === 'ink' ? 'none' : (f.core || '#FFB719');
+    const lineCol = mode === 'ink' ? 'none' : (f.petal2 || 'rgba(255,255,255,0.4)');
+    // Large organic petals with radiating line details
+    let petals = '';
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * 72) * Math.PI / 180;
+      const dx = Math.cos(angle) * 28;
+      const dy = Math.sin(angle) * 28;
+      const px = 60 + dx, py = 52 + dy;
+      // petal body
+      const path = `M${px} ${py} Q${px + Math.cos(angle) * 14} ${py + Math.sin(angle) * 10} ${px + Math.cos(angle) * 16} ${py + Math.sin(angle) * 28} Q${px - Math.sin(angle) * 10} ${py + Math.cos(angle) * 14} ${px} ${py} Z`;
+      petals += `<path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/>`;
+      // radiating lines for detail
+      if (mode === 'color') {
+        for (let l = 0; l < 3; l++) {
+          const loffset = (l - 1) * 3;
+          const lx1 = px - Math.sin(angle) * loffset;
+          const ly1 = py + Math.cos(angle) * loffset;
+          const lx2 = px + Math.cos(angle) * 16 - Math.sin(angle) * loffset;
+          const ly2 = py + Math.sin(angle) * 28 + Math.cos(angle) * loffset;
+          petals += `<line x1="${lx1.toFixed(1)}" y1="${ly1.toFixed(1)}" x2="${lx2.toFixed(1)}" y2="${ly2.toFixed(1)}" stroke="${lineCol}" stroke-width="0.8" stroke-linecap="round"/>`;
+        }
+      }
+    }
+    return `${base(f, mode, opts)}
+      <g>${petals}</g>
+      <circle cx="60" cy="52" r="11" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
+  }
+
   function drawZinnia(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
@@ -372,7 +405,7 @@
     rose: drawRose, poppy: drawPoppy, anemone: drawAnemone, sunflower: drawSunflower,
     daisy: drawDaisy, tulip: drawTulip, ranunculus: drawRanunculus, lavender: drawLavender,
     forgetmenot: drawForgetmenot, sakura: drawSakura, bluebell: drawBluebell,
-    aster: drawAster, zinnia: drawZinnia,
+    aster: drawAster, zinnia: drawZinnia, wildflower: drawWildflower,
   };
 
   function flowerInner(type, mode, opts) {
