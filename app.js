@@ -9,11 +9,11 @@
   // Flat paper-cut palette: bold base-card backgrounds, accent-colour petals,
   // emerald/olive foliage. No black outlines; shapes read by colour contrast.
   const FLOWERS = {
-    aster:       { label: 'Aster',       petal: '#8D32A7', petal2: '#CDBDF6', ink: '#4A0E2B', core: '#FED52B', coreInk: '#FFB719', leaf: '#168B46', leafInk: '#5B7318', bg: '#FFF8DC', draw: 'aster' },
-    zinnia:      { label: 'Zinnia',      petal: '#EE4A36', petal2: '#FFB719', ink: '#BA1259', core: '#FFB719', leaf: '#168B46', leafInk: '#5B7318', bg: '#CDBDF6', draw: 'zinnia' },
-    camellia:    { label: 'Camellia',    petal: '#F7B2D2', petal2: '#FA318A', ink: '#BA1259', core: '#FED52B', leaf: '#168B46', leafInk: '#5B7318', bg: '#A3CFFC', draw: 'ranunculus' },
-    hibiscus:    { label: 'Hibiscus',    petal: '#FA318A', petal2: '#F99E7B', ink: '#BA1259', core: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#1BB29D', draw: 'poppy' },
-    wildflower:  { label: 'Wildflower',  petal: '#F7A770', petal2: 'rgba(255,255,255,0.5)', ink: '#E8873A', core: '#FFB719', coreInk: '#F05023', leaf: '#168B46', leafInk: '#5B7318', bg: '#FFF5E8', draw: 'wildflower' },
+    aster:       { label: 'Aster',       petal: '#A577CC', ink: '#4A2E63', core: '#EEB43F', leaf: '#168B46', leafInk: '#5B7318', bg: '#FFF8DC', draw: 'aster' },
+    zinnia:      { label: 'Zinnia',      petal: '#D53426', ink: '#7A1810', core: '#1F41A0', leaf: '#168B46', leafInk: '#5B7318', bg: '#CDBDF6', draw: 'zinnia' },
+    camellia:    { label: 'Camellia',    petal: '#EB819A', ink: '#8C2E44', core: '#E55C28', leaf: '#168B46', leafInk: '#5B7318', bg: '#A3CFFC', draw: 'ranunculus' },
+    hibiscus:    { label: 'Hibiscus',    petal: '#2657AA', ink: '#13284F', core: '#ECAB3C', leaf: '#168B46', leafInk: '#5B7318', bg: '#1BB29D', draw: 'poppy' },
+    wildflower:  { label: 'Wildflower',  petal: '#EFB740', ink: '#8A5A12', core: '#E9778C', leaf: '#168B46', leafInk: '#5B7318', bg: '#FFF5E8', draw: 'wildflower' },
   };
 
   const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -70,6 +70,54 @@
   //   'color' -> full watercolour-and-ink illustration (a day remembered)
   // opts.leaves === false draws just the flower head (used inside bouquets).
 
+  // A flat, lobed "Bloomie-style" petal: a wide pie-slice with a soft double-bump
+  // outer edge, tapering to a narrow base at the flower's centre. Built by
+  // sampling a radius-vs-angle profile (two Gaussian bumps either side of a
+  // shallow centre dip) and smoothing the samples into a Catmull-Rom curve.
+  function bloomGaussian(x, sigma) { return Math.exp(-(x * x) / (sigma * sigma)); }
+
+  function smoothPath(pts, closed) {
+    const n = pts.length;
+    let d = `M${pts[0][0].toFixed(2)},${pts[0][1].toFixed(2)}`;
+    for (let i = 0; i < n - 1; i++) {
+      const p0 = pts[i === 0 ? 0 : i - 1], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2 < n ? i + 2 : n - 1];
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
+    }
+    return closed ? d + ' Z' : d;
+  }
+
+  function bloomPetal(cx, cy, angle, geo, mode) {
+    const { halfAngle, bumpAngle, rBase, aBump, cDip, sigma, innerR, steps } = geo;
+    const pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = -halfAngle + (2 * halfAngle) * (i / steps);
+      const r = rBase + aBump * (bloomGaussian(t - bumpAngle, sigma) + bloomGaussian(t + bumpAngle, sigma)) - cDip * bloomGaussian(t, sigma);
+      const rad = t * Math.PI / 180;
+      pts.push([r * Math.sin(rad), -r * Math.cos(rad)]);
+    }
+    // ink mode traces only the outer scalloped edge (no spokes to the centre);
+    // colour mode closes each petal into a filled wedge back at the centre.
+    const d = mode === 'ink' ? smoothPath(pts, false) : smoothPath([[0, -innerR], ...pts, [0, -innerR]], true);
+    return `<path d="${d}" transform="translate(${cx} ${cy}) rotate(${angle})"/>`;
+  }
+
+  // count=5 geometry (aster uses its own 6-petal variant below)
+  const BLOOM5 = { halfAngle: 34, bumpAngle: 15, rBase: 40, aBump: 2.6, cDip: 1.8, sigma: 10.5, innerR: 3, steps: 14 };
+  const BLOOM6 = { halfAngle: 27, bumpAngle: 12, rBase: 37, aBump: 2.2, cDip: 1.5, sigma: 8.5, innerR: 3, steps: 14 };
+
+  function drawBloom(f, mode, opts, count, geo, cx, cy, coreR) {
+    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
+    const fill = mode === 'ink' ? 'none' : f.petal;
+    const core = mode === 'ink' ? 'none' : (f.core || '#E9778C');
+    let petals = '';
+    for (let i = 0; i < count; i++) petals += bloomPetal(cx, cy, i * (360 / count), geo, mode);
+    return `${base(f, mode, opts)}
+      <g fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${petals}</g>
+      <circle cx="${cx}" cy="${cy}" r="${coreR}" fill="${core}" stroke="${stroke}" stroke-width="1.4"/>`;
+  }
+
   function teardrop(cx, cy, len, wid, angle) {
     const p = `M${cx} ${cy}`
       + `C${cx - wid} ${cy - len * 0.42} ${cx - wid} ${cy - len * 0.85} ${cx} ${cy - len}`
@@ -125,19 +173,7 @@
   }
 
   function drawPoppy(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const fill2 = mode === 'ink' ? 'none' : f.petal2;
-    const core = mode === 'ink' ? 'none' : (f.core || '#3d3a46');
-    let back = '';
-    for (let i = 0; i < 5; i++) back += teardrop(60, 52, 40, 27, i * 72 + 36);
-    let front = '';
-    for (let i = 0; i < 5; i++) front += teardrop(60, 52, 30, 22, i * 72);
-    return `${base(f, mode, opts)}
-      <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round">${back}</g>
-      <g fill="${fill2}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round">${front}</g>
-      <circle cx="60" cy="52" r="9" fill="${core}" stroke="${stroke}" stroke-width="1.6"/>
-      ${mode === 'ink' ? '' : stipple(60, 52, 6, 10, f.petal2)}`;
+    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 54, 8);
   }
 
   function drawAnemone(f, mode, opts) {
@@ -247,17 +283,7 @@
   }
 
   function drawRanunculus(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const fill2 = mode === 'ink' ? 'none' : f.petal2;
-    let r1 = ''; for (let i = 0; i < 10; i++) r1 += teardrop(60, 56, 32, 15, i * 36);
-    let r2 = ''; for (let i = 0; i < 8; i++) r2 += teardrop(60, 55, 22, 13, i * 45 + 18);
-    let r3 = ''; for (let i = 0; i < 6; i++) r3 += teardrop(60, 54, 13, 10, i * 60);
-    return `${base(f, mode, opts)}
-      <g fill="${fill}" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round">${r1}</g>
-      <g fill="${fill2}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round">${r2}</g>
-      <g fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round">${r3}</g>
-      <circle cx="60" cy="53" r="4" fill="${mode === 'ink' ? 'none' : f.ink}" stroke="${stroke}" stroke-width="1.2"/>`;
+    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 54, 8);
   }
 
   function drawLavender(f, mode, opts) {
@@ -307,82 +333,15 @@
   }
 
   function drawAster(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const core = mode === 'ink' ? 'none' : (f.core || '#FED52B');
-    // organic rounded petals in a radial pattern
-    let petals = '';
-    for (let i = 0; i < 16; i++) {
-      const angle = (i * 22.5) - 90;
-      const a = angle * Math.PI / 180;
-      const dist = 26;
-      const px = 60 + Math.cos(a) * dist;
-      const py = 52 + Math.sin(a) * dist;
-      // blobby petal shape
-      const path = `M${px} ${py} Q${px + Math.cos(a) * 10} ${py + Math.sin(a) * 8} ${px + Math.cos(a) * 12} ${py + Math.sin(a) * 20} Q${px - Math.sin(a) * 8} ${py + Math.cos(a) * 12} ${px} ${py} Z`;
-      petals += `<path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.4"/>`;
-    }
-    return `${base(f, mode, opts)}
-      <g>${petals}</g>
-      <circle cx="60" cy="52" r="13" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
+    return drawBloom(f, mode, opts, 6, BLOOM6, 60, 54, 8);
   }
 
   function drawWildflower(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const core = mode === 'ink' ? 'none' : (f.core || '#FFB719');
-    const lineCol = mode === 'ink' ? 'none' : (f.petal2 || 'rgba(255,255,255,0.4)');
-    // Large organic petals with radiating line details
-    let petals = '';
-    for (let i = 0; i < 5; i++) {
-      const angle = (i * 72) * Math.PI / 180;
-      const dx = Math.cos(angle) * 28;
-      const dy = Math.sin(angle) * 28;
-      const px = 60 + dx, py = 52 + dy;
-      // petal body
-      const path = `M${px} ${py} Q${px + Math.cos(angle) * 14} ${py + Math.sin(angle) * 10} ${px + Math.cos(angle) * 16} ${py + Math.sin(angle) * 28} Q${px - Math.sin(angle) * 10} ${py + Math.cos(angle) * 14} ${px} ${py} Z`;
-      petals += `<path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/>`;
-      // radiating lines for detail
-      if (mode === 'color') {
-        for (let l = 0; l < 3; l++) {
-          const loffset = (l - 1) * 3;
-          const lx1 = px - Math.sin(angle) * loffset;
-          const ly1 = py + Math.cos(angle) * loffset;
-          const lx2 = px + Math.cos(angle) * 16 - Math.sin(angle) * loffset;
-          const ly2 = py + Math.sin(angle) * 28 + Math.cos(angle) * loffset;
-          petals += `<line x1="${lx1.toFixed(1)}" y1="${ly1.toFixed(1)}" x2="${lx2.toFixed(1)}" y2="${ly2.toFixed(1)}" stroke="${lineCol}" stroke-width="0.8" stroke-linecap="round"/>`;
-        }
-      }
-    }
-    return `${base(f, mode, opts)}
-      <g>${petals}</g>
-      <circle cx="60" cy="52" r="11" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
+    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 54, 8);
   }
 
   function drawZinnia(f, mode, opts) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const fill2 = mode === 'ink' ? 'none' : f.petal2;
-    const core = mode === 'ink' ? 'none' : (f.core || '#FED52B');
-    let outer = '';
-    for (let i = 0; i < 8; i++) {
-      const a = i * 45 * Math.PI / 180;
-      const dx = Math.cos(a) * 35;
-      const dy = Math.sin(a) * 35;
-      const cx = 60 + dx, cy = 54 + dy;
-      outer += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="16" ry="24" fill="${fill}" stroke="${stroke}" stroke-width="2" transform="rotate(${i * 45 + 22.5} ${cx.toFixed(1)} ${cy.toFixed(1)})"/>`;
-    }
-    let inner = '';
-    for (let i = 0; i < 6; i++) {
-      const a = i * 60 * Math.PI / 180;
-      const dx = Math.cos(a) * 18;
-      const dy = Math.sin(a) * 18;
-      inner += `<circle cx="${(60 + dx).toFixed(1)}" cy="${(54 + dy).toFixed(1)}" r="8" fill="${fill2}" stroke="${stroke}" stroke-width="1.4"/>`;
-    }
-    return `${base(f, mode, opts)}
-      <g>${outer}</g>
-      <g>${inner}</g>
-      <circle cx="60" cy="54" r="10" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
+    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 54, 8);
   }
 
   const DRAWERS = {
