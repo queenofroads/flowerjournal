@@ -393,7 +393,7 @@
   };
 
   function flowerInner(type, mode, opts) {
-    const f = FLOWERS[type] || FLOWERS.rose;
+    const f = FLOWERS[type] || FLOWERS.wildflower;
     return DRAWERS[f.draw](f, mode, opts);
   }
 
@@ -645,7 +645,7 @@
   function stampHTML(key, d, isToday) {
     const entry = entries[key];
     const type = entry ? entry.flower : dayFlowerType(key);
-    const f = FLOWERS[type] || FLOWERS.rose;
+    const f = FLOWERS[type] || FLOWERS.wildflower;
     const flowerMarkup = flowerSVG(type, entry ? 'color' : 'ink');
     const bgStyle = entry ? `--stamp-bg:${f.bg};` : '';
     const photoPeek = entry && entry.photo
@@ -763,7 +763,7 @@
         const today = key === todayKey ? ' today' : '';
         if (entry) {
           total++;
-          const f = FLOWERS[entry.flower] || FLOWERS.rose;
+          const f = FLOWERS[entry.flower] || FLOWERS.wildflower;
           const note = (entry.text || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
           body += `<div class="yp-cell filled${weekend}${today}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' · ' + note : ''}">
             <span class="yp-dnum">${d}</span>
@@ -883,7 +883,7 @@
 
   // recolour the whole postcard to the day's flower, and stamp its bloom
   function paintPostcard(type) {
-    const f = FLOWERS[type] || FLOWERS.rose;
+    const f = FLOWERS[type] || FLOWERS.wildflower;
     const cardBg = flowerCardColor(f);
     postcard.style.setProperty('--stamp-bg', cardBg);
     // choose ink that stays legible whether the bloom's colour is light or deep
@@ -1185,7 +1185,7 @@
         const entry = entries[dateKey(year, mi, d)];
         if (entry) {
           total++;
-          const f = FLOWERS[entry.flower] || FLOWERS.rose;
+          const f = FLOWERS[entry.flower] || FLOWERS.wildflower;
           shapes += `<rect x="${cx}" y="${cy}" width="${dayW}" height="${rowH}" fill="${f.bg}"/>`;
           const s = (Math.min(dayW, rowH) * 0.74) / 120;
           const fx = cx + dayW / 2 - 60 * s;
