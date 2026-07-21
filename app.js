@@ -88,31 +88,44 @@
     return closed ? d + ' Z' : d;
   }
 
-  function bloomPetal(cx, cy, angle, geo, mode) {
+  // deterministic pseudo-random in [-1,1], so each species' hand-painted
+  // asymmetry is fixed (not re-randomised on every render)
+  function bloomJitter(seed) {
+    const x = Math.sin(seed * 12.9898) * 43758.5453;
+    return ((x - Math.floor(x)) * 2) - 1;
+  }
+
+  function bloomPetal(cx, cy, angle, geo, mode, seed) {
     const { halfAngle, bumpAngle, rBase, aBump, cDip, sigma, innerR, steps } = geo;
+    // slight per-petal size/angle/lobe variation so the bloom reads as
+    // hand-painted rather than a mechanically uniform radial pattern
+    const jR = rBase * (1 + 0.10 * bloomJitter(seed));
+    const jHalf = halfAngle * (1 + 0.08 * bloomJitter(seed + 11));
+    const jBump = bumpAngle * (1 + 0.15 * bloomJitter(seed + 22));
+    const jRot = 3 * bloomJitter(seed + 33);
     const pts = [];
     for (let i = 0; i <= steps; i++) {
-      const t = -halfAngle + (2 * halfAngle) * (i / steps);
-      const r = rBase + aBump * (bloomGaussian(t - bumpAngle, sigma) + bloomGaussian(t + bumpAngle, sigma)) - cDip * bloomGaussian(t, sigma);
+      const t = -jHalf + (2 * jHalf) * (i / steps);
+      const r = jR + aBump * (bloomGaussian(t - jBump, sigma) + bloomGaussian(t + jBump, sigma)) - cDip * bloomGaussian(t, sigma);
       const rad = t * Math.PI / 180;
       pts.push([r * Math.sin(rad), -r * Math.cos(rad)]);
     }
     // ink mode traces only the outer scalloped edge (no spokes to the centre);
     // colour mode closes each petal into a filled wedge back at the centre.
     const d = mode === 'ink' ? smoothPath(pts, false) : smoothPath([[0, -innerR], ...pts, [0, -innerR]], true);
-    return `<path d="${d}" transform="translate(${cx} ${cy}) rotate(${angle})"/>`;
+    return `<path d="${d}" transform="translate(${cx} ${cy}) rotate(${angle + jRot})"/>`;
   }
 
   // count=5 geometry (aster uses its own 6-petal variant below)
-  const BLOOM5 = { halfAngle: 34, bumpAngle: 15, rBase: 40, aBump: 2.6, cDip: 1.8, sigma: 10.5, innerR: 3, steps: 14 };
-  const BLOOM6 = { halfAngle: 27, bumpAngle: 12, rBase: 37, aBump: 2.2, cDip: 1.5, sigma: 8.5, innerR: 3, steps: 14 };
+  const BLOOM5 = { halfAngle: 34, bumpAngle: 15, rBase: 50, aBump: 3.2, cDip: 2.2, sigma: 11, innerR: 3, steps: 14 };
+  const BLOOM6 = { halfAngle: 27, bumpAngle: 12, rBase: 45, aBump: 2.8, cDip: 1.8, sigma: 9, innerR: 3, steps: 14 };
 
   function drawBloom(f, mode, opts, count, geo, cx, cy, coreR) {
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
     const fill = mode === 'ink' ? 'none' : f.petal;
     const core = mode === 'ink' ? 'none' : (f.core || '#E9778C');
     let petals = '';
-    for (let i = 0; i < count; i++) petals += bloomPetal(cx, cy, i * (360 / count), geo, mode);
+    for (let i = 0; i < count; i++) petals += bloomPetal(cx, cy, i * (360 / count), geo, mode, i * 97 + count * 13);
     return `${base(f, mode, opts)}
       <g fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${petals}</g>
       <circle cx="${cx}" cy="${cy}" r="${coreR}" fill="${core}" stroke="${stroke}" stroke-width="1.4"/>`;
@@ -173,7 +186,7 @@
   }
 
   function drawPoppy(f, mode, opts) {
-    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 54, 8);
+    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 56, 7);
   }
 
   function drawAnemone(f, mode, opts) {
@@ -283,7 +296,7 @@
   }
 
   function drawRanunculus(f, mode, opts) {
-    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 54, 8);
+    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 56, 7);
   }
 
   function drawLavender(f, mode, opts) {
@@ -333,15 +346,15 @@
   }
 
   function drawAster(f, mode, opts) {
-    return drawBloom(f, mode, opts, 6, BLOOM6, 60, 54, 8);
+    return drawBloom(f, mode, opts, 6, BLOOM6, 60, 56, 7);
   }
 
   function drawWildflower(f, mode, opts) {
-    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 54, 8);
+    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 56, 7);
   }
 
   function drawZinnia(f, mode, opts) {
-    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 54, 8);
+    return drawBloom(f, mode, opts, 5, BLOOM5, 60, 56, 7);
   }
 
   const DRAWERS = {
