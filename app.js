@@ -122,13 +122,14 @@
 
   function drawBloom(f, mode, opts, count, geo, cx, cy, coreR) {
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
+    const strokeW = mode === 'ink' ? 2.4 : 1.4;
     const fill = mode === 'ink' ? 'none' : f.petal;
     const core = mode === 'ink' ? 'none' : (f.core || '#E9778C');
     let petals = '';
     for (let i = 0; i < count; i++) petals += bloomPetal(cx, cy, i * (360 / count), geo, mode, i * 97 + count * 13);
     return `${base(f, mode, opts)}
-      <g fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${petals}</g>
-      <circle cx="${cx}" cy="${cy}" r="${coreR}" fill="${core}" stroke="${stroke}" stroke-width="1.4"/>`;
+      <g fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" stroke-linecap="round" stroke-linejoin="round">${petals}</g>
+      <circle cx="${cx}" cy="${cy}" r="${coreR}" fill="${core}" stroke="${stroke}" stroke-width="${strokeW}"/>`;
   }
 
   function teardrop(cx, cy, len, wid, angle) {
