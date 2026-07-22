@@ -54,17 +54,9 @@
   }
 
   const PENCIL = { stroke: '#b0a086', fill: 'none' };
-
-  // blend a hex colour toward another (0 = original, 1 = fully target) — used
-  // to make an unwritten day's flower a soft pastel tint of its true colours,
-  // instead of a bare outline that barely reads as a flower.
-  function mixHex(hex, targetHex, amt) {
-    const h1 = hex.replace('#', ''), h2 = targetHex.replace('#', '');
-    const r1 = parseInt(h1.slice(0, 2), 16), g1 = parseInt(h1.slice(2, 4), 16), b1 = parseInt(h1.slice(4, 6), 16);
-    const r2 = parseInt(h2.slice(0, 2), 16), g2 = parseInt(h2.slice(2, 4), 16), b2 = parseInt(h2.slice(4, 6), 16);
-    const r = Math.round(r1 + (r2 - r1) * amt), g = Math.round(g1 + (g2 - g1) * amt), b = Math.round(b1 + (b2 - b1) * amt);
-    return `#${[r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
-  }
+  // a single, solid dark brown used for every unwritten day's flower — bold
+  // and clearly visible, not tinted per species
+  const BUD_BROWN = '#6b5842';
 
   const MOODS = [
     { key: 'joyful', emoji: '😊', label: 'Joyful' },
@@ -130,10 +122,10 @@
   const BLOOM6 = { halfAngle: 27, bumpAngle: 12, rBase: 45, aBump: 2.8, cDip: 1.8, sigma: 9, innerR: 3, steps: 14 };
 
   function drawBloom(f, mode, opts, count, geo, cx, cy, coreR) {
-    // an unwritten day still shows its full flower, just as a soft pastel
-    // tint of its true colours — a bud waiting to bloom, not a blank line
-    const fill = mode === 'ink' ? mixHex(f.petal, '#FFFFFF', 0.55) : f.petal;
-    const core = mode === 'ink' ? mixHex(f.core || '#E9778C', '#FFFFFF', 0.45) : (f.core || '#E9778C');
+    // an unwritten day still shows its full flower shape, solid dark brown —
+    // a bud waiting to bloom into its real colours once the day is written
+    const fill = mode === 'ink' ? BUD_BROWN : f.petal;
+    const core = mode === 'ink' ? PENCIL.stroke : (f.core || '#E9778C');
     let petals = '';
     for (let i = 0; i < count; i++) petals += bloomPetal(cx, cy, i * (360 / count), geo, i * 97 + count * 13);
     return `${base(f, mode, opts)}
@@ -160,9 +152,9 @@
 
   function leaves(f, mode) {
     // flat oversized leaves; the stem and veins are the only line work (tonal, not black)
-    const stemCol = mode === 'ink' ? mixHex(f.leafInk, '#FFFFFF', 0.35) : f.leafInk;
+    const stemCol = mode === 'ink' ? BUD_BROWN : f.leafInk;
     const leafStroke = 'none';
-    const fill = mode === 'ink' ? mixHex(f.leaf, '#FFFFFF', 0.55) : f.leaf;
+    const fill = mode === 'ink' ? BUD_BROWN : f.leaf;
     // the stem runs up under the flower head (drawn behind the petals) so the
     // bloom, stem and leaves read as one connected plant
     return `<g stroke-linejoin="round">
