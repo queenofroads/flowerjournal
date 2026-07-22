@@ -6,7 +6,7 @@
   <title>Flower Journal</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌸</text></svg>" />
   <link rel="preload" href="fonts/Wnz6HAc5bAfYB2Q7ZjYY.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="style.css?v=20260720c" />
+  <link rel="stylesheet" href="style.css?v=20260722b" />
 </head>
 <body>
   <!-- embossing filter for the flowers: a soft bevel + drop shadow so they feel pressed into the stamp -->
@@ -58,8 +58,10 @@
     <main id="calendarGrid" class="calendar-grid" aria-live="polite"></main>
 
     <div class="footer-actions">
+      <button id="searchBtn" class="today-btn">🔍 Search entries</button>
       <button id="futureBtn" class="today-btn">✉ Dear future me</button>
       <button id="exportBtn" class="today-btn" hidden>Save my year as an image</button>
+      <button id="reminderBtn" class="today-btn">🔔 Remind me</button>
       <button id="todayBtn" class="today-btn">Back to Today</button>
     </div>
 
@@ -89,6 +91,41 @@
       <div class="modal-actions">
         <button id="clearFuture" class="btn btn-ghost" hidden>Start over</button>
         <button id="saveFuture" class="btn btn-primary">Seal this letter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & filter past entries -->
+  <div id="searchOverlay" class="modal-overlay" hidden>
+    <div class="modal search-modal" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
+      <button id="closeSearch" class="close-btn" aria-label="Close">×</button>
+      <h3 id="searchTitle">Find a memory</h3>
+      <div class="field-group">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search what you wrote…" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Filter by mood</label>
+        <div id="searchMoodFilter" class="mood-picker"></div>
+      </div>
+      <div id="searchResults" class="search-results"></div>
+      <p id="searchEmpty" class="search-empty" hidden>No memories match yet.</p>
+    </div>
+  </div>
+
+  <!-- Gentle daily reminder to write -->
+  <div id="reminderOverlay" class="modal-overlay" hidden>
+    <div class="modal reminder-modal" role="dialog" aria-modal="true" aria-labelledby="reminderTitle">
+      <button id="closeReminder" class="close-btn" aria-label="Close">×</button>
+      <h3 id="reminderTitle">A gentle daily nudge</h3>
+      <p class="future-sub" id="reminderSub">Get a gentle nudge to write, once a day.</p>
+      <div class="field-group">
+        <label class="field-label" for="reminderTime">Remind me at</label>
+        <input type="time" id="reminderTime" value="20:00" />
+      </div>
+      <p class="reminder-note">Works while Flower Journal is open in a browser tab — it can't reach you if the tab or browser is fully closed.</p>
+      <div class="modal-actions">
+        <button id="disableReminder" class="btn btn-ghost" hidden>Turn off</button>
+        <button id="enableReminder" class="btn btn-primary">Enable reminder</button>
       </div>
     </div>
   </div>
@@ -166,6 +203,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260722a"></script>
+  <script src="app.js?v=20260722b"></script>
 </body>
 </html>

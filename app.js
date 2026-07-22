@@ -1360,6 +1360,191 @@
   });
   document.addEventListener('keydown', e => { if (futureOverlay && !futureOverlay.hidden && e.key === 'Escape') closeFuture(); });
 
+  // ---- Search & filter past entries -----------------------------------------
+  const searchBtn = document.getElementById('searchBtn');
+  const searchOverlay = document.getElementById('searchOverlay');
+  const closeSearchBtn = document.getElementById('closeSearch');
+  const searchInput = document.getElementById('searchInput');
+  const searchMoodFilterEl = document.getElementById('searchMoodFilter');
+  const searchResultsEl = document.getElementById('searchResults');
+  const searchEmptyEl = document.getElementById('searchEmpty');
+  const searchMoods = new Set();
+
+  function escapeHtml(s) {
+    return s.replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+  }
+
+  function fmtResultDate(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // jump the calendar to a given day and open its entry, from anywhere (e.g. a search result)
+  function goToDate(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    viewDate = new Date(y, m - 1, 1);
+    setView('flat');
+    openModal(key);
+  }
+
+  function renderSearchMoodFilter() {
+    if (!searchMoodFilterEl) return;
+    searchMoodFilterEl.innerHTML = MOODS.map(m =>
+      `<button type="button" class="pick-btn mood-opt" data-key="${m.key}" title="${m.label}" aria-label="${m.label}">${m.emoji}</button>`
+    ).join('');
+    searchMoodFilterEl.querySelectorAll('.mood-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        if (searchMoods.has(key)) searchMoods.delete(key); else searchMoods.add(key);
+        btn.classList.toggle('selected');
+        runSearch();
+      });
+    });
+  }
+
+  function runSearch() {
+    if (!searchResultsEl) return;
+    const q = searchInput.value.trim().toLowerCase();
+    const rows = Object.keys(entries)
+      .filter(key => {
+        const e = entries[key];
+        if (searchMoods.size && !searchMoods.has(e.mood)) return false;
+        if (q && !(e.text || '').toLowerCase().includes(q)) return false;
+        return true;
+      })
+      .sort((a, b) => b.localeCompare(a));
+
+    searchEmptyEl.hidden = rows.length > 0;
+    searchResultsEl.innerHTML = rows.map(key => {
+      const e = entries[key];
+      const mood = MOODS.find(m => m.key === e.mood);
+      const text = e.text || '';
+      const snippet = text.slice(0, 90) + (text.length > 90 ? '…' : '');
+      return `<button type="button" class="search-row" data-key="${key}">
+        <span class="search-row-flower">${flowerHeadSVG(e.flower, 'color')}</span>
+        <span class="search-row-body">
+          <span class="search-row-date">${fmtResultDate(key)} ${mood ? mood.emoji : ''}</span>
+          <span class="search-row-snippet">${snippet ? escapeHtml(snippet) : '<em>No note</em>'}</span>
+        </span>
+      </button>`;
+    }).join('');
+
+    searchResultsEl.querySelectorAll('.search-row').forEach(row => {
+      row.addEventListener('click', () => {
+        closeSearch();
+        goToDate(row.dataset.key);
+      });
+    });
+  }
+
+  function openSearch() {
+    searchInput.value = '';
+    searchMoods.clear();
+    searchMoodFilterEl.querySelectorAll('.mood-opt').forEach(b => b.classList.remove('selected'));
+    runSearch();
+    searchOverlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => searchInput.focus(), 60);
+  }
+  function closeSearch() {
+    searchOverlay.hidden = true;
+    document.body.style.overflow = '';
+  }
+  if (searchBtn) searchBtn.addEventListener('click', openSearch);
+  if (closeSearchBtn) closeSearchBtn.addEventListener('click', closeSearch);
+  if (searchOverlay) searchOverlay.addEventListener('click', e => { if (e.target === searchOverlay) closeSearch(); });
+  if (searchInput) searchInput.addEventListener('input', runSearch);
+  document.addEventListener('keydown', e => { if (searchOverlay && !searchOverlay.hidden && e.key === 'Escape') closeSearch(); });
+  renderSearchMoodFilter();
+
+  // ---- Gentle daily reminder --------------------------------------------------
+  const REMINDER_KEY = 'flowerJournal.reminder';
+  const reminderBtn = document.getElementById('reminderBtn');
+  const reminderOverlay = document.getElementById('reminderOverlay');
+  const closeReminderBtn = document.getElementById('closeReminder');
+  const reminderTimeInput = document.getElementById('reminderTime');
+  const enableReminderBtn = document.getElementById('enableReminder');
+  const disableReminderBtn = document.getElementById('disableReminder');
+  const reminderSubEl = document.getElementById('reminderSub');
+  let reminderTimer = null;
+
+  const loadReminder = () => { try { return JSON.parse(localStorage.getItem(REMINDER_KEY)); } catch (e) { return null; } };
+  const saveReminderPref = pref => localStorage.setItem(REMINDER_KEY, JSON.stringify(pref));
+
+  // re-arms itself for the next day after firing (or after being rescheduled)
+  function scheduleReminder() {
+    if (reminderTimer) { clearTimeout(reminderTimer); reminderTimer = null; }
+    if (!('Notification' in window)) return;
+    const pref = loadReminder();
+    if (!pref || !pref.enabled || Notification.permission !== 'granted') return;
+    const [hh, mm] = pref.time.split(':').map(Number);
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1);
+    reminderTimer = setTimeout(() => {
+      const todayKey = dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+      if (!entries[todayKey]) {
+        try { new Notification('Flower Journal', { body: 'A quiet moment to write today down. 🌸' }); } catch (e) {}
+      }
+      scheduleReminder();
+    }, next.getTime() - now.getTime());
+  }
+
+  function updateReminderUI() {
+    const pref = loadReminder();
+    const on = !!(pref && pref.enabled && 'Notification' in window && Notification.permission === 'granted');
+    enableReminderBtn.hidden = on;
+    disableReminderBtn.hidden = !on;
+    reminderTimeInput.value = (pref && pref.time) || '20:00';
+    reminderSubEl.textContent = on
+      ? `Reminding you at ${reminderTimeInput.value} each day, while this tab is open.`
+      : 'Get a gentle nudge to write, once a day.';
+  }
+
+  function openReminder() {
+    updateReminderUI();
+    reminderOverlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeReminder() {
+    reminderOverlay.hidden = true;
+    document.body.style.overflow = '';
+  }
+  if (reminderBtn) reminderBtn.addEventListener('click', openReminder);
+  if (closeReminderBtn) closeReminderBtn.addEventListener('click', closeReminder);
+  if (reminderOverlay) reminderOverlay.addEventListener('click', e => { if (e.target === reminderOverlay) closeReminder(); });
+  document.addEventListener('keydown', e => { if (reminderOverlay && !reminderOverlay.hidden && e.key === 'Escape') closeReminder(); });
+
+  if (enableReminderBtn) enableReminderBtn.addEventListener('click', () => {
+    if (!('Notification' in window)) { showAffirmation("This browser can't show notifications."); return; }
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') {
+        saveReminderPref({ enabled: true, time: reminderTimeInput.value || '20:00' });
+        scheduleReminder();
+        updateReminderUI();
+        showAffirmation('Reminder set. 🔔');
+      } else {
+        showAffirmation("Notifications weren't allowed.");
+      }
+    });
+  });
+  if (disableReminderBtn) disableReminderBtn.addEventListener('click', () => {
+    saveReminderPref({ enabled: false, time: reminderTimeInput.value || '20:00' });
+    if (reminderTimer) { clearTimeout(reminderTimer); reminderTimer = null; }
+    updateReminderUI();
+  });
+  if (reminderTimeInput) reminderTimeInput.addEventListener('change', () => {
+    const pref = loadReminder();
+    if (pref && pref.enabled) {
+      saveReminderPref({ enabled: true, time: reminderTimeInput.value });
+      scheduleReminder();
+      updateReminderUI();
+    }
+  });
+
+  scheduleReminder();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReminder(); });
+
   renderWeekdayRow();
   renderFlowerPicker();
   renderMoodPicker();
