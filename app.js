@@ -55,6 +55,17 @@
 
   const PENCIL = { stroke: '#b0a086', fill: 'none' };
 
+  // blend a hex colour toward another (0 = original, 1 = fully target) — used
+  // to make an unwritten day's flower a soft pastel tint of its true colours,
+  // instead of a bare outline that barely reads as a flower.
+  function mixHex(hex, targetHex, amt) {
+    const h1 = hex.replace('#', ''), h2 = targetHex.replace('#', '');
+    const r1 = parseInt(h1.slice(0, 2), 16), g1 = parseInt(h1.slice(2, 4), 16), b1 = parseInt(h1.slice(4, 6), 16);
+    const r2 = parseInt(h2.slice(0, 2), 16), g2 = parseInt(h2.slice(2, 4), 16), b2 = parseInt(h2.slice(4, 6), 16);
+    const r = Math.round(r1 + (r2 - r1) * amt), g = Math.round(g1 + (g2 - g1) * amt), b = Math.round(b1 + (b2 - b1) * amt);
+    return `#${[r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+  }
+
   const MOODS = [
     { key: 'joyful', emoji: '😊', label: 'Joyful' },
     { key: 'peaceful', emoji: '😌', label: 'Peaceful' },
@@ -76,7 +87,7 @@
   // shallow centre dip) and smoothing the samples into a Catmull-Rom curve.
   function bloomGaussian(x, sigma) { return Math.exp(-(x * x) / (sigma * sigma)); }
 
-  function smoothPath(pts, closed) {
+  function smoothPath(pts) {
     const n = pts.length;
     let d = `M${pts[0][0].toFixed(2)},${pts[0][1].toFixed(2)}`;
     for (let i = 0; i < n - 1; i++) {
@@ -85,7 +96,7 @@
       const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
       d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
     }
-    return closed ? d + ' Z' : d;
+    return d + ' Z';
   }
 
   // deterministic pseudo-random in [-1,1], so each species' hand-painted
@@ -95,7 +106,7 @@
     return ((x - Math.floor(x)) * 2) - 1;
   }
 
-  function bloomPetal(cx, cy, angle, geo, mode, seed) {
+  function bloomPetal(cx, cy, angle, geo, seed) {
     const { halfAngle, bumpAngle, rBase, aBump, cDip, sigma, innerR, steps } = geo;
     // slight per-petal size/angle/lobe variation so the bloom reads as
     // hand-painted rather than a mechanically uniform radial pattern
@@ -110,9 +121,7 @@
       const rad = t * Math.PI / 180;
       pts.push([r * Math.sin(rad), -r * Math.cos(rad)]);
     }
-    // ink mode traces only the outer scalloped edge (no spokes to the centre);
-    // colour mode closes each petal into a filled wedge back at the centre.
-    const d = mode === 'ink' ? smoothPath(pts, false) : smoothPath([[0, -innerR], ...pts, [0, -innerR]], true);
+    const d = smoothPath([[0, -innerR], ...pts, [0, -innerR]]);
     return `<path d="${d}" transform="translate(${cx} ${cy}) rotate(${angle + jRot})"/>`;
   }
 
@@ -121,15 +130,15 @@
   const BLOOM6 = { halfAngle: 27, bumpAngle: 12, rBase: 45, aBump: 2.8, cDip: 1.8, sigma: 9, innerR: 3, steps: 14 };
 
   function drawBloom(f, mode, opts, count, geo, cx, cy, coreR) {
-    const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const strokeW = mode === 'ink' ? 2.4 : 1.4;
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const core = mode === 'ink' ? 'none' : (f.core || '#E9778C');
+    // an unwritten day still shows its full flower, just as a soft pastel
+    // tint of its true colours — a bud waiting to bloom, not a blank line
+    const fill = mode === 'ink' ? mixHex(f.petal, '#FFFFFF', 0.55) : f.petal;
+    const core = mode === 'ink' ? mixHex(f.core || '#E9778C', '#FFFFFF', 0.45) : (f.core || '#E9778C');
     let petals = '';
-    for (let i = 0; i < count; i++) petals += bloomPetal(cx, cy, i * (360 / count), geo, mode, i * 97 + count * 13);
+    for (let i = 0; i < count; i++) petals += bloomPetal(cx, cy, i * (360 / count), geo, i * 97 + count * 13);
     return `${base(f, mode, opts)}
-      <g fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" stroke-linecap="round" stroke-linejoin="round">${petals}</g>
-      <circle cx="${cx}" cy="${cy}" r="${coreR}" fill="${core}" stroke="${stroke}" stroke-width="${strokeW}"/>`;
+      <g fill="${fill}" stroke="none" stroke-linejoin="round">${petals}</g>
+      <circle cx="${cx}" cy="${cy}" r="${coreR}" fill="${core}"/>`;
   }
 
   function teardrop(cx, cy, len, wid, angle) {
@@ -151,9 +160,9 @@
 
   function leaves(f, mode) {
     // flat oversized leaves; the stem and veins are the only line work (tonal, not black)
-    const stemCol = mode === 'ink' ? PENCIL.stroke : f.leafInk;
-    const leafStroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.leaf;
+    const stemCol = mode === 'ink' ? mixHex(f.leafInk, '#FFFFFF', 0.35) : f.leafInk;
+    const leafStroke = 'none';
+    const fill = mode === 'ink' ? mixHex(f.leaf, '#FFFFFF', 0.55) : f.leaf;
     // the stem runs up under the flower head (drawn behind the petals) so the
     // bloom, stem and leaves read as one connected plant
     return `<g stroke-linejoin="round">
