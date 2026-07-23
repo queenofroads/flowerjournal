@@ -721,15 +721,17 @@
 
     // top ruler of day numbers 1..31
     let ruler = `<div class="yp-corner"></div>`;
-    for (let d = 1; d <= 31; d++) ruler += `<div class="yp-head">${d}</div>`;
+    for (let d = 1; d <= 31; d++) ruler += `<div class="yp-head${d === 31 ? ' yp-head-end' : ''}">${d}</div>`;
 
     let total = 0;
     let body = '';
     for (let mi = 0; mi < 12; mi++) {
       const dim = new Date(year, mi + 1, 0).getDate();
-      body += `<div class="yp-month" data-month="${mi}" role="button" tabindex="0">${MONTH_ABBR[mi]}</div>`;
+      const lastMonth = mi === 11;
+      body += `<div class="yp-month${lastMonth ? ' yp-month-end' : ''}" data-month="${mi}" role="button" tabindex="0">${MONTH_ABBR[mi]}</div>`;
       for (let d = 1; d <= 31; d++) {
-        if (d > dim) { body += `<div class="yp-cell void"></div>`; continue; }
+        const cellEnd = lastMonth && d === 31 ? ' yp-cell-end' : '';
+        if (d > dim) { body += `<div class="yp-cell void${cellEnd}"></div>`; continue; }
         const key = dateKey(year, mi, d);
         const entry = entries[key];
         const dow = new Date(year, mi, d).getDay();
@@ -739,7 +741,7 @@
           total++;
           const f = FLOWERS[entry.flower] || FLOWERS.wildflower;
           const note = (entry.text || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
-          body += `<div class="yp-cell filled${weekend}${today}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' · ' + note : ''}">
+          body += `<div class="yp-cell filled${weekend}${today}${cellEnd}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' · ' + note : ''}">
             <span class="yp-dnum">${d}</span>
             <span class="yp-wd">${WD[dow]}</span>
             <div class="yp-fl">${flowerHeadSVG(entry.flower, 'color')}</div>
@@ -747,7 +749,7 @@
         } else {
           // empty days still show their own flower as pencil line-art, so the
           // year planner reads like the flat calendar: every day is a bloom
-          body += `<div class="yp-cell${weekend}${today}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}">
+          body += `<div class="yp-cell${weekend}${today}${cellEnd}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}">
             <span class="yp-dnum">${d}</span>
             <span class="yp-wd">${WD[dow]}</span>
             <div class="yp-fl yp-bud">${flowerHeadSVG(dayFlowerType(key), 'ink')}</div>
@@ -1456,94 +1458,6 @@
   if (searchInput) searchInput.addEventListener('input', runSearch);
   document.addEventListener('keydown', e => { if (searchOverlay && !searchOverlay.hidden && e.key === 'Escape') closeSearch(); });
   renderSearchMoodFilter();
-
-  // ---- Gentle daily reminder --------------------------------------------------
-  const REMINDER_KEY = 'flowerJournal.reminder';
-  const reminderBtn = document.getElementById('reminderBtn');
-  const reminderOverlay = document.getElementById('reminderOverlay');
-  const closeReminderBtn = document.getElementById('closeReminder');
-  const reminderTimeInput = document.getElementById('reminderTime');
-  const enableReminderBtn = document.getElementById('enableReminder');
-  const disableReminderBtn = document.getElementById('disableReminder');
-  const reminderSubEl = document.getElementById('reminderSub');
-  let reminderTimer = null;
-
-  const loadReminder = () => { try { return JSON.parse(localStorage.getItem(REMINDER_KEY)); } catch (e) { return null; } };
-  const saveReminderPref = pref => localStorage.setItem(REMINDER_KEY, JSON.stringify(pref));
-
-  // re-arms itself for the next day after firing (or after being rescheduled)
-  function scheduleReminder() {
-    if (reminderTimer) { clearTimeout(reminderTimer); reminderTimer = null; }
-    if (!('Notification' in window)) return;
-    const pref = loadReminder();
-    if (!pref || !pref.enabled || Notification.permission !== 'granted') return;
-    const [hh, mm] = pref.time.split(':').map(Number);
-    const now = new Date();
-    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
-    if (next <= now) next.setDate(next.getDate() + 1);
-    reminderTimer = setTimeout(() => {
-      const todayKey = dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-      if (!entries[todayKey]) {
-        try { new Notification('Flower Journal', { body: 'A quiet moment to write today down. 🌸' }); } catch (e) {}
-      }
-      scheduleReminder();
-    }, next.getTime() - now.getTime());
-  }
-
-  function updateReminderUI() {
-    const pref = loadReminder();
-    const on = !!(pref && pref.enabled && 'Notification' in window && Notification.permission === 'granted');
-    enableReminderBtn.hidden = on;
-    disableReminderBtn.hidden = !on;
-    reminderTimeInput.value = (pref && pref.time) || '20:00';
-    reminderSubEl.textContent = on
-      ? `Reminding you at ${reminderTimeInput.value} each day, while this tab is open.`
-      : 'Get a gentle nudge to write, once a day.';
-  }
-
-  function openReminder() {
-    updateReminderUI();
-    reminderOverlay.hidden = false;
-    document.body.style.overflow = 'hidden';
-  }
-  function closeReminder() {
-    reminderOverlay.hidden = true;
-    document.body.style.overflow = '';
-  }
-  if (reminderBtn) reminderBtn.addEventListener('click', openReminder);
-  if (closeReminderBtn) closeReminderBtn.addEventListener('click', closeReminder);
-  if (reminderOverlay) reminderOverlay.addEventListener('click', e => { if (e.target === reminderOverlay) closeReminder(); });
-  document.addEventListener('keydown', e => { if (reminderOverlay && !reminderOverlay.hidden && e.key === 'Escape') closeReminder(); });
-
-  if (enableReminderBtn) enableReminderBtn.addEventListener('click', () => {
-    if (!('Notification' in window)) { showAffirmation("This browser can't show notifications."); return; }
-    Notification.requestPermission().then(perm => {
-      if (perm === 'granted') {
-        saveReminderPref({ enabled: true, time: reminderTimeInput.value || '20:00' });
-        scheduleReminder();
-        updateReminderUI();
-        showAffirmation('Reminder set. 🔔');
-      } else {
-        showAffirmation("Notifications weren't allowed.");
-      }
-    });
-  });
-  if (disableReminderBtn) disableReminderBtn.addEventListener('click', () => {
-    saveReminderPref({ enabled: false, time: reminderTimeInput.value || '20:00' });
-    if (reminderTimer) { clearTimeout(reminderTimer); reminderTimer = null; }
-    updateReminderUI();
-  });
-  if (reminderTimeInput) reminderTimeInput.addEventListener('change', () => {
-    const pref = loadReminder();
-    if (pref && pref.enabled) {
-      saveReminderPref({ enabled: true, time: reminderTimeInput.value });
-      scheduleReminder();
-      updateReminderUI();
-    }
-  });
-
-  scheduleReminder();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReminder(); });
 
   renderWeekdayRow();
   renderFlowerPicker();

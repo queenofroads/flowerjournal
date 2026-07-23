@@ -565,13 +565,20 @@ body::before {
   min-width: 780px;
   border: 1.5px solid var(--line);
   border-radius: 16px;
-  overflow: hidden;
+  /* NOTE: deliberately not `overflow: hidden` — that would make this grid its
+     own scroll-containing block and break `position: sticky` on .yp-month /
+     .yp-corner against the real scroll container (.calendar-grid.year-mode) */
   background: var(--card);
   box-shadow: var(--shadow-soft);
   animation: bloomIn 0.4s ease both;
 }
+/* since the grid can no longer clip its own corners (see note above), round
+   the four actual corner cells instead so the card still reads as rounded */
+.yp-head-end { border-top-right-radius: 15px; }
+.yp-month-end { border-bottom-left-radius: 15px; }
+.yp-cell-end { border-bottom-right-radius: 15px; }
 
-.yp-corner { background: #f7f0e4; position: sticky; left: 0; z-index: 3; border-right: 1.5px solid var(--line); border-bottom: 1.5px solid var(--line); }
+.yp-corner { background: #f7f0e4; position: sticky; left: 0; z-index: 3; border-right: 1.5px solid var(--line); border-bottom: 1.5px solid var(--line); border-top-left-radius: 15px; }
 
 .yp-head {
   display: flex;
@@ -625,9 +632,8 @@ body::before {
 
 .yp-fl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .yp-fl svg { width: 76%; height: 76%; overflow: visible; }
-/* empty days: a faint pencil bloom, so every day reads like the flat calendar */
-.yp-bud { opacity: 0.4; }
-.yp-cell:not(.void):not(.filled):hover .yp-bud { opacity: 0.7; }
+/* empty days: the same solid dark-brown bud as the flat calendar */
+.yp-cell:not(.void):not(.filled):hover .yp-bud { transform: scale(1.08); }
 
 .yp-cell:not(.void):not(.filled):hover { background: #fbeede; }
 .yp-cell.filled:hover { transform: scale(1.22); z-index: 4; box-shadow: 0 5px 13px rgba(120, 80, 70, 0.28); border-radius: 4px; }
@@ -940,12 +946,16 @@ body::before {
   background: rgba(47, 43, 40, 0.4);
   backdrop-filter: blur(3px);
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 20px;
   z-index: 100;
   animation: overlayIn 0.2s ease;
+  /* content taller than the viewport (e.g. the postcard editor with the
+     keyboard open on a phone) scrolls within the overlay instead of clipping.
+     Centering is done with `margin: auto` on the child, not align-items —
+     align-items: center clips the top of overflowing content when scrolled. */
+  overflow-y: auto;
 }
+.modal-overlay > * { margin: auto; }
 
 .modal-overlay[hidden] { display: none; }
 .modal-overlay.closing { animation: overlayOut 0.16s ease forwards; }
@@ -1338,17 +1348,6 @@ body::before {
 .search-row-snippet { font-size: 0.9rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-row-snippet em { color: var(--ink-soft); }
 
-.reminder-note { font-size: 0.8rem; color: var(--ink-soft); margin: -6px 0 18px; line-height: 1.4; }
-#reminderTime {
-  font: inherit;
-  font-size: 1rem;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1.5px solid var(--line);
-  background: #fbf5ec;
-  color: var(--ink);
-}
-
 .pick-btn {
   width: 54px;
   height: 54px;
@@ -1434,14 +1433,13 @@ textarea.nudge { animation: nudge 0.4s ease; }
   .stat-num { font-size: 1.3rem; }
   .today-cta { display: flex; align-items: center; justify-content: center; }
 
-  /* roomier, calmer stamps: bigger flowers, quieter empty days */
+  /* roomier stamps on small screens; unwritten flowers stay solid, not faded */
   .calendar-grid { gap: 6px; }
   .stamp { padding: 4px; }
   .stamp-date { font-size: 0.72rem; }
   .stamp-date small { font-size: 0.38rem; }
   .day-flower { width: 92%; height: 92%; }
-  .is-bud .day-flower { opacity: 0.3; }
-  .is-bud .stamp-date { color: rgba(90, 80, 70, 0.4); }
+  .is-bud .stamp-date { color: rgba(90, 80, 70, 0.55); }
 
   .calendar-grid.ring-mode { height: 440px; }
   .ring-mode .day-card { width: 62px; }
