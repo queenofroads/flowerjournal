@@ -53,7 +53,7 @@
     return arr[h % arr.length];
   }
 
-  const PENCIL = { stroke: '#b0a086', fill: 'none' };
+  const PENCIL = { stroke: '#3d2817', fill: 'none' };
 
   const MOODS = [
     { key: 'joyful', emoji: '😊', label: 'Joyful' },
