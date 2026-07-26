@@ -122,9 +122,10 @@
   const BLOOM6 = { halfAngle: 27, bumpAngle: 12, rBase: 45, aBump: 2.8, cDip: 1.8, sigma: 9, innerR: 3, steps: 14 };
 
   function drawBloom(f, mode, opts, count, geo, cx, cy, coreR) {
-    // an unwritten day still shows its full flower shape, solid dark brown —
-    // a bud waiting to bloom into its real colours once the day is written
-    const fill = mode === 'ink' ? BUD_BROWN : f.petal;
+    // an unwritten day still shows its full flower shape, in that species'
+    // own dark muted tone — a bud waiting to bloom into full colour once
+    // the day is written (a whole month of one flat brown read as dull)
+    const fill = mode === 'ink' ? (f.ink || BUD_BROWN) : f.petal;
     const core = mode === 'ink' ? PENCIL.stroke : (f.core || '#E9778C');
     let petals = '';
     for (let i = 0; i < count; i++) petals += bloomPetal(cx, cy, i * (360 / count), geo, i * 97 + count * 13);
