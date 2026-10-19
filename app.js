@@ -15,6 +15,58 @@
     hibiscus:    { label: 'Hibiscus',    petal: '#FA318A', petal2: '#F99E7B', ink: '#BA1259', core: '#4A0E2B', leaf: '#168B46', leafInk: '#5B7318', bg: '#1BB29D', draw: 'poppy' },
     wildflower:  { label: 'Wildflower',  petal: '#F7A770', petal2: 'rgba(255,255,255,0.5)', ink: '#E8873A', core: '#FFB719', coreInk: '#F05023', leaf: '#168B46', leafInk: '#5B7318', bg: '#FFF5E8', draw: 'wildflower' },
   };
+  Object.keys(FLOWERS).forEach(k => { FLOWERS[k].key = k; });
+
+  // lighten (positive) or darken (negative) a hex colour, for gradient stops
+  function shade(hex, amt) {
+    if (!hex || hex[0] !== '#') return hex;
+    const h = hex.replace('#', '');
+    const num = parseInt(h, 16);
+    let r = (num >> 16) + amt, g = ((num >> 8) & 0xff) + amt, b = (num & 0xff) + amt;
+    r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
+    return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+  }
+
+  // one shared radial-gradient pair per flower type (petal + core), defined once
+  // in a hidden <svg> so every stamp/picker instance references the same ids
+  // instead of re-declaring duplicate gradients per render.
+  function buildFlowerDefs() {
+    const petalDefs = Object.keys(FLOWERS).map(key => {
+      const f = FLOWERS[key];
+      const tip = shade(f.petal2 && f.petal2[0] === '#' ? f.petal2 : f.petal, 20);
+      const base = f.petal2 && f.petal2[0] === '#' ? f.petal2 : f.petal;
+      const deep = shade(f.petal, -24);
+      const coreBase = f.core || f.petal2 || f.petal;
+      const coreTip = shade(coreBase[0] === '#' ? coreBase : f.petal, 26);
+      const coreDeep = shade(coreBase[0] === '#' ? coreBase : f.petal, -30);
+      return `
+        <radialGradient id="grad-${key}-petal" gradientUnits="userSpaceOnUse" cx="60" cy="48" r="46">
+          <stop offset="0%" stop-color="${tip}"/>
+          <stop offset="55%" stop-color="${base}"/>
+          <stop offset="100%" stop-color="${deep}"/>
+        </radialGradient>
+        <radialGradient id="grad-${key}-core" gradientUnits="userSpaceOnUse" cx="57" cy="46" r="15">
+          <stop offset="0%" stop-color="${coreTip}"/>
+          <stop offset="60%" stop-color="${coreBase[0] === '#' ? coreBase : f.petal}"/>
+          <stop offset="100%" stop-color="${coreDeep}"/>
+        </radialGradient>`;
+    }).join('');
+    const anyF = FLOWERS[Object.keys(FLOWERS)[0]];
+    const leafGrad = `
+      <linearGradient id="grad-leaf-shared" x1="40" y1="88" x2="86" y2="112" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="${shade(anyF.leaf, 18)}"/>
+        <stop offset="100%" stop-color="${shade(anyF.leafInk, -6)}"/>
+      </linearGradient>`;
+    return `<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>${petalDefs}${leafGrad}</defs></svg>`;
+  }
+
+  function injectFlowerDefs() {
+    if (document.getElementById('flowerDefsRoot')) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'flowerDefsRoot';
+    wrap.innerHTML = buildFlowerDefs();
+    document.body.prepend(wrap);
+  }
 
   const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
@@ -35,6 +87,14 @@
     'What felt hard, and how did you meet it?',
     'What are you looking forward to?',
     'Where did you feel most like yourself today?',
+    'What did you get closer to achieving today?',
+    'What is one thing you did today your future self will thank you for?',
+    'What is a goal you took a small step toward today?',
+    'What did you finally finish or check off today?',
+    'What effort today deserves credit, even if it is not done yet?',
+    'What skill or habit are you building, one day at a time?',
+    'What did you make happen today instead of waiting for it?',
+    'What would you tell someone who doubts you can do this?',
   ];
   // affirmations shown after you save
   const AFFIRMATIONS = [
@@ -91,7 +151,7 @@
     // flat oversized leaves; the stem and veins are the only line work (tonal, not black)
     const stemCol = mode === 'ink' ? PENCIL.stroke : f.leafInk;
     const leafStroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.leaf;
+    const fill = mode === 'ink' ? 'none' : 'url(#grad-leaf-shared)';
     // the stem runs up under the flower head (drawn behind the petals) so the
     // bloom, stem and leaves read as one connected plant
     return `<g stroke-linejoin="round">
@@ -126,18 +186,34 @@
 
   function drawPoppy(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const fill2 = mode === 'ink' ? 'none' : f.petal2;
-    const core = mode === 'ink' ? 'none' : (f.core || '#3d3a46');
+    const fillBack = mode === 'ink' ? 'none' : shade(f.petal, -12);
+    const fillFront = mode === 'ink' ? 'none' : `url(#grad-${f.key}-petal)`;
+    const core = mode === 'ink' ? 'none' : `url(#grad-${f.key}-core)`;
     let back = '';
     for (let i = 0; i < 5; i++) back += teardrop(60, 52, 40, 27, i * 72 + 36);
     let front = '';
     for (let i = 0; i < 5; i++) front += teardrop(60, 52, 30, 22, i * 72);
+    // fine crepe-paper veins fanning out across each front petal
+    let veins = '';
+    if (mode === 'color') {
+      for (let i = 0; i < 5; i++) {
+        const a = i * 72 * Math.PI / 180;
+        for (let v = -1; v <= 1; v++) {
+          const spread = v * 7 * Math.PI / 180;
+          const ax = a + spread;
+          const bx1 = 60 + Math.cos(a) * 7, by1 = 52 + Math.sin(a) * 7;
+          const bx2 = 60 + Math.cos(ax) * 26, by2 = 52 + Math.sin(ax) * 26;
+          veins += `<path d="M${bx1.toFixed(1)} ${by1.toFixed(1)} Q${(60 + Math.cos(ax) * 17).toFixed(1)} ${(52 + Math.sin(ax) * 17).toFixed(1)} ${bx2.toFixed(1)} ${by2.toFixed(1)}" fill="none" stroke="${shade(f.petal, -30)}" stroke-width="0.55" opacity="0.3" stroke-linecap="round"/>`;
+        }
+      }
+    }
     return `${base(f, mode, opts)}
-      <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round">${back}</g>
-      <g fill="${fill2}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round">${front}</g>
+      <g fill="${fillBack}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round">${back}</g>
+      <g fill="${fillFront}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round">${front}</g>
+      <g>${veins}</g>
       <circle cx="60" cy="52" r="9" fill="${core}" stroke="${stroke}" stroke-width="1.6"/>
-      ${mode === 'ink' ? '' : stipple(60, 52, 6, 10, f.petal2)}`;
+      ${mode === 'ink' ? '' : stipple(60, 52, 6, 12, shade(typeof f.core === 'string' && f.core[0] === '#' ? f.core : '#4A0E2B', 22))}
+      ${mode === 'ink' ? '' : `<ellipse cx="57" cy="48" rx="2.8" ry="1.6" fill="rgba(255,255,255,0.4)"/>`}`;
   }
 
   function drawAnemone(f, mode, opts) {
@@ -248,16 +324,20 @@
 
   function drawRanunculus(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const fill2 = mode === 'ink' ? 'none' : f.petal2;
-    let r1 = ''; for (let i = 0; i < 10; i++) r1 += teardrop(60, 56, 32, 15, i * 36);
-    let r2 = ''; for (let i = 0; i < 8; i++) r2 += teardrop(60, 55, 22, 13, i * 45 + 18);
-    let r3 = ''; for (let i = 0; i < 6; i++) r3 += teardrop(60, 54, 13, 10, i * 60);
+    const fillOuter = mode === 'ink' ? 'none' : `url(#grad-${f.key}-petal)`;
+    const fillMid = mode === 'ink' ? 'none' : shade(f.petal2 && f.petal2[0] === '#' ? f.petal2 : f.petal, 6);
+    const fillInner = mode === 'ink' ? 'none' : (f.petal2 || f.petal);
+    let r1 = ''; for (let i = 0; i < 11; i++) r1 += teardrop(60, 56, 33, 14, i * (360 / 11));
+    let r2 = ''; for (let i = 0; i < 9; i++) r2 += teardrop(60, 55, 23, 12, i * (360 / 9) + 18);
+    let r3 = ''; for (let i = 0; i < 7; i++) r3 += teardrop(60, 54, 15, 9, i * (360 / 7));
+    let r4 = ''; for (let i = 0; i < 5; i++) r4 += teardrop(60, 53, 8, 6, i * 72 + 36);
     return `${base(f, mode, opts)}
-      <g fill="${fill}" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round">${r1}</g>
-      <g fill="${fill2}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round">${r2}</g>
-      <g fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round">${r3}</g>
-      <circle cx="60" cy="53" r="4" fill="${mode === 'ink' ? 'none' : f.ink}" stroke="${stroke}" stroke-width="1.2"/>`;
+      <g fill="${fillOuter}" stroke="${stroke}" stroke-width="1.7" stroke-linejoin="round">${r1}</g>
+      <g fill="${fillMid}" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round">${r2}</g>
+      <g fill="${fillInner}" stroke="${stroke}" stroke-width="1.3" stroke-linejoin="round">${r3}</g>
+      <g fill="${fillOuter}" stroke="${stroke}" stroke-width="1.1" stroke-linejoin="round" opacity="0.92">${r4}</g>
+      <circle cx="60" cy="53" r="3.6" fill="${mode === 'ink' ? 'none' : f.ink}" stroke="${stroke}" stroke-width="1.1"/>
+      ${mode === 'ink' ? '' : `<ellipse cx="57" cy="50" rx="2.2" ry="1.3" fill="rgba(255,255,255,0.35)"/>`}`;
   }
 
   function drawLavender(f, mode, opts) {
@@ -308,81 +388,86 @@
 
   function drawAster(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const core = mode === 'ink' ? 'none' : (f.core || '#FED52B');
-    // organic rounded petals in a radial pattern
-    let petals = '';
-    for (let i = 0; i < 16; i++) {
-      const angle = (i * 22.5) - 90;
-      const a = angle * Math.PI / 180;
-      const dist = 26;
-      const px = 60 + Math.cos(a) * dist;
-      const py = 52 + Math.sin(a) * dist;
-      // blobby petal shape
-      const path = `M${px} ${py} Q${px + Math.cos(a) * 10} ${py + Math.sin(a) * 8} ${px + Math.cos(a) * 12} ${py + Math.sin(a) * 20} Q${px - Math.sin(a) * 8} ${py + Math.cos(a) * 12} ${px} ${py} Z`;
-      petals += `<path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.4"/>`;
+    const fillBack = mode === 'ink' ? 'none' : shade(f.petal2 && f.petal2[0] === '#' ? f.petal2 : f.petal, -8);
+    const fillFront = mode === 'ink' ? 'none' : `url(#grad-${f.key}-petal)`;
+    const core = mode === 'ink' ? 'none' : `url(#grad-${f.key}-core)`;
+    // two offset rings of narrow, tapered petals for a layered, double-flower depth
+    let back = ''; for (let i = 0; i < 14; i++) back += teardrop(60, 50, 34, 7, i * (360 / 14));
+    let front = ''; for (let i = 0; i < 14; i++) front += teardrop(60, 50, 26, 6.4, i * (360 / 14) + (360 / 28));
+    let veins = '';
+    if (mode === 'color') {
+      for (let i = 0; i < 14; i++) {
+        const a = (i * (360 / 14) + (360 / 28) - 90) * Math.PI / 180;
+        const x2 = 60 + Math.cos(a) * 23, y2 = 50 + Math.sin(a) * 23;
+        veins += `<line x1="60" y1="50" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${shade(f.petal, -32)}" stroke-width="0.55" opacity="0.32" stroke-linecap="round"/>`;
+      }
     }
     return `${base(f, mode, opts)}
-      <g>${petals}</g>
-      <circle cx="60" cy="52" r="13" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
+      <g fill="${fillBack}" stroke="${stroke}" stroke-width="1.3" stroke-linejoin="round">${back}</g>
+      <g fill="${fillFront}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round">${front}</g>
+      <g>${veins}</g>
+      <circle cx="60" cy="50" r="12" fill="${core}" stroke="${stroke}" stroke-width="1.4"/>
+      ${mode === 'ink' ? '' : stipple(60, 50, 9, 22, shade(typeof f.core === 'string' ? f.core : '#FED52B', -26))}
+      ${mode === 'ink' ? '' : `<ellipse cx="57" cy="46" rx="3.3" ry="1.9" fill="rgba(255,255,255,0.5)"/>`}`;
   }
 
   function drawWildflower(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const core = mode === 'ink' ? 'none' : (f.core || '#FFB719');
-    const lineCol = mode === 'ink' ? 'none' : (f.petal2 || 'rgba(255,255,255,0.4)');
-    // Large organic petals with radiating line details
-    let petals = '';
-    for (let i = 0; i < 5; i++) {
-      const angle = (i * 72) * Math.PI / 180;
-      const dx = Math.cos(angle) * 28;
-      const dy = Math.sin(angle) * 28;
-      const px = 60 + dx, py = 52 + dy;
-      // petal body
-      const path = `M${px} ${py} Q${px + Math.cos(angle) * 14} ${py + Math.sin(angle) * 10} ${px + Math.cos(angle) * 16} ${py + Math.sin(angle) * 28} Q${px - Math.sin(angle) * 10} ${py + Math.cos(angle) * 14} ${px} ${py} Z`;
-      petals += `<path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/>`;
-      // radiating lines for detail
-      if (mode === 'color') {
-        for (let l = 0; l < 3; l++) {
-          const loffset = (l - 1) * 3;
-          const lx1 = px - Math.sin(angle) * loffset;
-          const ly1 = py + Math.cos(angle) * loffset;
-          const lx2 = px + Math.cos(angle) * 16 - Math.sin(angle) * loffset;
-          const ly2 = py + Math.sin(angle) * 28 + Math.cos(angle) * loffset;
-          petals += `<line x1="${lx1.toFixed(1)}" y1="${ly1.toFixed(1)}" x2="${lx2.toFixed(1)}" y2="${ly2.toFixed(1)}" stroke="${lineCol}" stroke-width="0.8" stroke-linecap="round"/>`;
+    const fillBack = mode === 'ink' ? 'none' : shade(f.petal, -10);
+    const fillFront = mode === 'ink' ? 'none' : `url(#grad-${f.key}-petal)`;
+    const core = mode === 'ink' ? 'none' : `url(#grad-${f.key}-core)`;
+    const lineCol = mode === 'ink' ? 'none' : 'rgba(255,255,255,0.55)';
+    // a fuller back ring (offset, slightly deeper) sitting behind the five main petals,
+    // so the bloom reads as round and full instead of five thin, isolated strokes
+    let back = ''; for (let i = 0; i < 5; i++) back += teardrop(60, 52, 36, 16, i * 72 + 36);
+    let front = ''; for (let i = 0; i < 5; i++) front += teardrop(60, 52, 32, 17, i * 72 - 90);
+    // fine radiating veins fanning across each front petal, the wildflower's signature texture
+    let veins = '';
+    if (mode === 'color') {
+      for (let i = 0; i < 5; i++) {
+        const a = (i * 72 - 90) * Math.PI / 180;
+        for (let v = -1; v <= 1; v++) {
+          const spread = v * 8 * Math.PI / 180;
+          const aa = a + spread;
+          const x1 = 60 + Math.cos(a) * 6, y1 = 52 + Math.sin(a) * 6;
+          const x2 = 60 + Math.cos(aa) * 29, y2 = 52 + Math.sin(aa) * 29;
+          veins += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${lineCol}" stroke-width="0.7" stroke-linecap="round" opacity="0.6"/>`;
         }
       }
     }
     return `${base(f, mode, opts)}
-      <g>${petals}</g>
-      <circle cx="60" cy="52" r="11" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
+      <g fill="${fillBack}" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round">${back}</g>
+      <g fill="${fillFront}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round">${front}</g>
+      <g>${veins}</g>
+      <circle cx="60" cy="52" r="11" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>
+      ${mode === 'ink' ? '' : stipple(60, 52, 8, 18, shade(typeof f.core === 'string' ? f.core : '#FFB719', -22))}
+      ${mode === 'ink' ? '' : `<ellipse cx="57" cy="48" rx="3" ry="1.7" fill="rgba(255,255,255,0.45)"/>`}`;
   }
 
   function drawZinnia(f, mode, opts) {
     const stroke = mode === 'ink' ? PENCIL.stroke : 'none';
-    const fill = mode === 'ink' ? 'none' : f.petal;
-    const fill2 = mode === 'ink' ? 'none' : f.petal2;
-    const core = mode === 'ink' ? 'none' : (f.core || '#FED52B');
+    const fillOuter = mode === 'ink' ? 'none' : `url(#grad-${f.key}-petal)`;
+    const fillInner = mode === 'ink' ? 'none' : shade(f.petal2 && f.petal2[0] === '#' ? f.petal2 : f.petal, 10);
+    const core = mode === 'ink' ? 'none' : `url(#grad-${f.key}-core)`;
     let outer = '';
-    for (let i = 0; i < 8; i++) {
-      const a = i * 45 * Math.PI / 180;
-      const dx = Math.cos(a) * 35;
-      const dy = Math.sin(a) * 35;
-      const cx = 60 + dx, cy = 54 + dy;
-      outer += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="16" ry="24" fill="${fill}" stroke="${stroke}" stroke-width="2" transform="rotate(${i * 45 + 22.5} ${cx.toFixed(1)} ${cy.toFixed(1)})"/>`;
+    for (let i = 0; i < 9; i++) {
+      const a = i * 40 * Math.PI / 180;
+      const cx = 60 + Math.cos(a) * 34, cy = 54 + Math.sin(a) * 34;
+      outer += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="14" ry="22" fill="${fillOuter}" stroke="${stroke}" stroke-width="1.8" transform="rotate(${i * 40 + 20} ${cx.toFixed(1)} ${cy.toFixed(1)})"/>`;
+      if (mode === 'color') outer += `<line x1="${cx.toFixed(1)}" y1="${cy.toFixed(1)}" x2="60" y2="54" stroke="${shade(f.petal, -28)}" stroke-width="0.55" opacity="0.28"/>`;
     }
     let inner = '';
-    for (let i = 0; i < 6; i++) {
-      const a = i * 60 * Math.PI / 180;
-      const dx = Math.cos(a) * 18;
-      const dy = Math.sin(a) * 18;
-      inner += `<circle cx="${(60 + dx).toFixed(1)}" cy="${(54 + dy).toFixed(1)}" r="8" fill="${fill2}" stroke="${stroke}" stroke-width="1.4"/>`;
+    for (let i = 0; i < 7; i++) {
+      const a = i * (360 / 7) * Math.PI / 180;
+      const cx = 60 + Math.cos(a) * 17, cy = 54 + Math.sin(a) * 17;
+      inner += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="7.5" fill="${fillInner}" stroke="${stroke}" stroke-width="1.3"/>`;
     }
     return `${base(f, mode, opts)}
       <g>${outer}</g>
       <g>${inner}</g>
-      <circle cx="60" cy="54" r="10" fill="${core}" stroke="${stroke}" stroke-width="1.5"/>`;
+      <circle cx="60" cy="54" r="9.5" fill="${core}" stroke="${stroke}" stroke-width="1.4"/>
+      ${mode === 'ink' ? '' : stipple(60, 54, 7, 18, shade(typeof f.core === 'string' ? f.core : '#FFB719', -22))}
+      ${mode === 'ink' ? '' : `<ellipse cx="57" cy="50" rx="3" ry="1.7" fill="rgba(255,255,255,0.45)"/>`}`;
   }
 
   const DRAWERS = {
@@ -541,6 +626,7 @@
   let pendingPhoto = null;
   let selectedFlower = null;
   let selectedMood = null;
+  let selectedPrompt = null;
   let editMode = false;
   let justSavedKey = null;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -574,6 +660,37 @@
   const moodPicker = document.getElementById('moodPicker');
   const memoryText = document.getElementById('memoryText');
   const diaryPrompt = document.getElementById('diaryPrompt');
+  const promptChangeBtn = document.getElementById('promptChangeBtn');
+  const promptList = document.getElementById('promptList');
+
+  // pick n prompts at random from the pool, never repeating and never the current one
+  function sampleOtherPrompts(current, n) {
+    const pool = PROMPTS.filter(p => p !== current);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, n);
+  }
+
+  function closePromptList() { promptList.hidden = true; promptList.innerHTML = ''; }
+
+  function renderPromptList() {
+    const choices = sampleOtherPrompts(selectedPrompt, 5);
+    promptList.innerHTML = choices.map(p => `<button type="button" class="prompt-opt">${p}</button>`).join('');
+    promptList.querySelectorAll('.prompt-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedPrompt = btn.textContent;
+        diaryPrompt.textContent = selectedPrompt;
+        closePromptList();
+      });
+    });
+    promptList.hidden = false;
+  }
+
+  if (promptChangeBtn) promptChangeBtn.addEventListener('click', () => {
+    if (promptList.hidden) renderPromptList(); else closePromptList();
+  });
   const photoInput = document.getElementById('photoInput');
   const photoPreviewWrap = document.getElementById('photoPreviewWrap');
   const photoPreview = document.getElementById('photoPreview');
@@ -959,7 +1076,9 @@
     updateMoodCaption();
 
     memoryText.value = entry ? entry.text : '';
-    if (diaryPrompt) diaryPrompt.textContent = pickBy(PROMPTS, key);
+    selectedPrompt = entry && entry.prompt ? entry.prompt : pickBy(PROMPTS, key);
+    if (diaryPrompt) diaryPrompt.textContent = selectedPrompt;
+    closePromptList();
     photoInput.value = '';
     if (pendingPhoto) {
       photoPreview.src = pendingPhoto;
@@ -996,6 +1115,8 @@
     pcEditToggle.hidden = editMode;
     saveEntryBtn.hidden = !editMode;
     deleteEntryBtn.hidden = !(editMode && entry);
+    if (promptChangeBtn) promptChangeBtn.hidden = !editMode;
+    if (!editMode) closePromptList();
   }
 
   function stepDay(delta) {
@@ -1066,6 +1187,7 @@
       mood: selectedMood,
       photo: pendingPhoto,
       flower: selectedFlower,
+      prompt: selectedPrompt,
       savedAt: new Date().toISOString(),
     };
     saveEntries(entries);
@@ -1386,6 +1508,7 @@
   });
   document.addEventListener('keydown', e => { if (futureOverlay && !futureOverlay.hidden && e.key === 'Escape') closeFuture(); });
 
+  injectFlowerDefs();
   renderWeekdayRow();
   renderFlowerPicker();
   renderMoodPicker();

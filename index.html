@@ -133,7 +133,11 @@
 
             <!-- right : the writing -->
             <div class="pc-right">
-              <p class="pc-prompt" id="diaryPrompt"></p>
+              <div class="pc-prompt-row">
+                <p class="pc-prompt" id="diaryPrompt"></p>
+                <button type="button" class="pc-prompt-change" id="promptChangeBtn" hidden>Change question</button>
+              </div>
+              <div class="pc-prompt-list" id="promptList" hidden></div>
               <textarea id="memoryText" rows="7" placeholder="Write today down, the big things and the small…"></textarea>
               <p class="pc-empty-note" id="pcEmptyNote">No thoughts recorded yet.</p>
             </div>
@@ -166,6 +170,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260720c"></script>
+  <script src="app.js?v=20261019a"></script>
 </body>
 </html>
