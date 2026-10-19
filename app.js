@@ -478,7 +478,7 @@
   };
 
   function flowerInner(type, mode, opts) {
-    const f = FLOWERS[type] || FLOWERS.rose;
+    const f = FLOWERS[type] || FLOWERS.wildflower;
     return DRAWERS[f.draw](f, mode, opts);
   }
 
@@ -762,7 +762,7 @@
   function stampHTML(key, d, isToday) {
     const entry = entries[key];
     const type = entry ? entry.flower : dayFlowerType(key);
-    const f = FLOWERS[type] || FLOWERS.rose;
+    const f = FLOWERS[type] || FLOWERS.wildflower;
     const flowerMarkup = flowerSVG(type, entry ? 'color' : 'ink');
     const bgStyle = entry ? `--stamp-bg:${f.bg};` : '';
     const photoPeek = entry && entry.photo
@@ -864,15 +864,17 @@
 
     // top ruler of day numbers 1..31
     let ruler = `<div class="yp-corner"></div>`;
-    for (let d = 1; d <= 31; d++) ruler += `<div class="yp-head">${d}</div>`;
+    for (let d = 1; d <= 31; d++) ruler += `<div class="yp-head${d === 31 ? ' yp-head-end' : ''}">${d}</div>`;
 
     let total = 0;
     let body = '';
     for (let mi = 0; mi < 12; mi++) {
       const dim = new Date(year, mi + 1, 0).getDate();
-      body += `<div class="yp-month" data-month="${mi}" role="button" tabindex="0">${MONTH_ABBR[mi]}</div>`;
+      const lastMonth = mi === 11;
+      body += `<div class="yp-month${lastMonth ? ' yp-month-end' : ''}" data-month="${mi}" role="button" tabindex="0">${MONTH_ABBR[mi]}</div>`;
       for (let d = 1; d <= 31; d++) {
-        if (d > dim) { body += `<div class="yp-cell void"></div>`; continue; }
+        const cellEnd = lastMonth && d === 31 ? ' yp-cell-end' : '';
+        if (d > dim) { body += `<div class="yp-cell void${cellEnd}"></div>`; continue; }
         const key = dateKey(year, mi, d);
         const entry = entries[key];
         const dow = new Date(year, mi, d).getDay();
@@ -880,9 +882,9 @@
         const today = key === todayKey ? ' today' : '';
         if (entry) {
           total++;
-          const f = FLOWERS[entry.flower] || FLOWERS.rose;
+          const f = FLOWERS[entry.flower] || FLOWERS.wildflower;
           const note = (entry.text || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
-          body += `<div class="yp-cell filled${weekend}${today}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' · ' + note : ''}">
+          body += `<div class="yp-cell filled${weekend}${today}${cellEnd}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' · ' + note : ''}">
             <span class="yp-dnum">${d}</span>
             <span class="yp-wd">${WD[dow]}</span>
             <div class="yp-fl">${flowerHeadSVG(entry.flower, 'color')}</div>
@@ -890,7 +892,7 @@
         } else {
           // empty days still show their own flower as pencil line-art, so the
           // year planner reads like the flat calendar: every day is a bloom
-          body += `<div class="yp-cell${weekend}${today}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}">
+          body += `<div class="yp-cell${weekend}${today}${cellEnd}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}">
             <span class="yp-dnum">${d}</span>
             <span class="yp-wd">${WD[dow]}</span>
             <div class="yp-fl yp-bud">${flowerHeadSVG(dayFlowerType(key), 'ink')}</div>
@@ -1000,7 +1002,7 @@
 
   // recolour the whole postcard to the day's flower, and stamp its bloom
   function paintPostcard(type) {
-    const f = FLOWERS[type] || FLOWERS.rose;
+    const f = FLOWERS[type] || FLOWERS.wildflower;
     const cardBg = flowerCardColor(f);
     postcard.style.setProperty('--stamp-bg', cardBg);
     // choose ink that stays legible whether the bloom's colour is light or deep
@@ -1307,7 +1309,7 @@
         const entry = entries[dateKey(year, mi, d)];
         if (entry) {
           total++;
-          const f = FLOWERS[entry.flower] || FLOWERS.rose;
+          const f = FLOWERS[entry.flower] || FLOWERS.wildflower;
           shapes += `<rect x="${cx}" y="${cy}" width="${dayW}" height="${rowH}" fill="${f.bg}"/>`;
           const s = (Math.min(dayW, rowH) * 0.74) / 120;
           const fx = cx + dayW / 2 - 60 * s;
@@ -1509,6 +1511,104 @@
   document.addEventListener('keydown', e => { if (futureOverlay && !futureOverlay.hidden && e.key === 'Escape') closeFuture(); });
 
   injectFlowerDefs();
+
+  // ---- Search & filter past entries -----------------------------------------
+  const searchBtn = document.getElementById('searchBtn');
+  const searchOverlay = document.getElementById('searchOverlay');
+  const closeSearchBtn = document.getElementById('closeSearch');
+  const searchInput = document.getElementById('searchInput');
+  const searchMoodFilterEl = document.getElementById('searchMoodFilter');
+  const searchResultsEl = document.getElementById('searchResults');
+  const searchEmptyEl = document.getElementById('searchEmpty');
+  const searchMoods = new Set();
+
+  function escapeHtml(s) {
+    return s.replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+  }
+
+  function fmtResultDate(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // jump the calendar to a given day and open its entry, from anywhere (e.g. a search result)
+  function goToDate(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    viewDate = new Date(y, m - 1, 1);
+    setView('flat');
+    openModal(key);
+  }
+
+  function renderSearchMoodFilter() {
+    if (!searchMoodFilterEl) return;
+    searchMoodFilterEl.innerHTML = MOODS.map(m =>
+      `<button type="button" class="pick-btn mood-opt" data-key="${m.key}" title="${m.label}" aria-label="${m.label}">${m.emoji}</button>`
+    ).join('');
+    searchMoodFilterEl.querySelectorAll('.mood-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        if (searchMoods.has(key)) searchMoods.delete(key); else searchMoods.add(key);
+        btn.classList.toggle('selected');
+        runSearch();
+      });
+    });
+  }
+
+  function runSearch() {
+    if (!searchResultsEl) return;
+    const q = searchInput.value.trim().toLowerCase();
+    const rows = Object.keys(entries)
+      .filter(key => {
+        const e = entries[key];
+        if (searchMoods.size && !searchMoods.has(e.mood)) return false;
+        if (q && !(e.text || '').toLowerCase().includes(q)) return false;
+        return true;
+      })
+      .sort((a, b) => b.localeCompare(a));
+
+    searchEmptyEl.hidden = rows.length > 0;
+    searchResultsEl.innerHTML = rows.map(key => {
+      const e = entries[key];
+      const mood = MOODS.find(m => m.key === e.mood);
+      const text = e.text || '';
+      const snippet = text.slice(0, 90) + (text.length > 90 ? '…' : '');
+      return `<button type="button" class="search-row" data-key="${key}">
+        <span class="search-row-flower">${flowerHeadSVG(e.flower, 'color')}</span>
+        <span class="search-row-body">
+          <span class="search-row-date">${fmtResultDate(key)} ${mood ? mood.emoji : ''}</span>
+          <span class="search-row-snippet">${snippet ? escapeHtml(snippet) : '<em>No note</em>'}</span>
+        </span>
+      </button>`;
+    }).join('');
+
+    searchResultsEl.querySelectorAll('.search-row').forEach(row => {
+      row.addEventListener('click', () => {
+        closeSearch();
+        goToDate(row.dataset.key);
+      });
+    });
+  }
+
+  function openSearch() {
+    searchInput.value = '';
+    searchMoods.clear();
+    searchMoodFilterEl.querySelectorAll('.mood-opt').forEach(b => b.classList.remove('selected'));
+    runSearch();
+    searchOverlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => searchInput.focus(), 60);
+  }
+  function closeSearch() {
+    searchOverlay.hidden = true;
+    document.body.style.overflow = '';
+  }
+  if (searchBtn) searchBtn.addEventListener('click', openSearch);
+  if (closeSearchBtn) closeSearchBtn.addEventListener('click', closeSearch);
+  if (searchOverlay) searchOverlay.addEventListener('click', e => { if (e.target === searchOverlay) closeSearch(); });
+  if (searchInput) searchInput.addEventListener('input', runSearch);
+  document.addEventListener('keydown', e => { if (searchOverlay && !searchOverlay.hidden && e.key === 'Escape') closeSearch(); });
+  renderSearchMoodFilter();
+
   renderWeekdayRow();
   renderFlowerPicker();
   renderMoodPicker();
