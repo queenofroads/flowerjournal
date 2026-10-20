@@ -1589,6 +1589,99 @@
   });
   document.addEventListener('keydown', e => { if (futureOverlay && !futureOverlay.hidden && e.key === 'Escape') closeFuture(); });
 
+  // ---- Year-end focus: "X days left" + one thing to keep doing consistently ----
+  const YEAR_FOCUS_KEY = 'flowerJournal.yearFocus';
+  const yfDaysEl = document.getElementById('yfDays');
+  const yfLabelEl = document.getElementById('yfLabel');
+  const yfCtaBtn = document.getElementById('yfCta');
+  const yearFocusOverlay = document.getElementById('yearFocusOverlay');
+  const closeYearFocusBtn = document.getElementById('closeYearFocus');
+  const yfTitleEl = document.getElementById('yfTitle');
+  const yfSubEl = document.getElementById('yfSub');
+  const yfTextEl = document.getElementById('yfText');
+  const yfChipsEl = document.getElementById('yfChips');
+  const saveYearFocusBtn = document.getElementById('saveYearFocus');
+  const clearYearFocusBtn = document.getElementById('clearYearFocus');
+  const yfFlowerEl = document.getElementById('yfFlower');
+  const FOCUS_SUGGESTIONS = [
+    'Write a little every day', 'Move my body', 'Read more', 'Save a little each week',
+    'Call someone I love', 'Drink more water', 'Go to bed earlier',
+  ];
+
+  // whole days from today (midnight) through Dec 31 of that same year, inclusive
+  function daysLeftInYear(d = new Date()) {
+    const start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const end = new Date(d.getFullYear(), 11, 31);
+    return Math.max(0, Math.round((end - start) / 86400000));
+  }
+  const loadYearFocus = () => { try { return JSON.parse(localStorage.getItem(YEAR_FOCUS_KEY)); } catch (e) { return null; } };
+
+  function renderYearFocusBar() {
+    if (!yfDaysEl) return;
+    const now = new Date();
+    const year = now.getFullYear();
+    const days = daysLeftInYear(now);
+    yfDaysEl.textContent = days;
+    yfLabelEl.textContent = days === 1 ? `day left in ${year}` : `days left in ${year}`;
+    const saved = loadYearFocus();
+    if (saved && saved.year === year && saved.text) {
+      yfCtaBtn.textContent = `🎯 ${saved.text}`;
+      yfCtaBtn.classList.add('has-focus');
+    } else {
+      yfCtaBtn.textContent = days === 0
+        ? 'Last day of the year — how do you want to meet it?'
+        : 'What will you do consistently before the year ends?';
+      yfCtaBtn.classList.remove('has-focus');
+    }
+  }
+
+  function openYearFocus() {
+    if (!yearFocusOverlay) return;
+    const now = new Date();
+    const year = now.getFullYear();
+    const days = daysLeftInYear(now);
+    yfTitleEl.textContent = days === 0 ? `Today is the last day of ${year}` : `${days} days left in ${year}`;
+    yfSubEl.textContent = 'Small, repeated things beat big one-offs. What is one thing you want to keep doing between now and December 31?';
+    if (yfFlowerEl) yfFlowerEl.innerHTML = flowerHeadSVG('aster', 'color');
+    const saved = loadYearFocus();
+    const hasSaved = !!(saved && saved.year === year && saved.text);
+    yfTextEl.value = hasSaved ? saved.text : '';
+    clearYearFocusBtn.hidden = !hasSaved;
+    saveYearFocusBtn.textContent = hasSaved ? 'Update my focus' : 'Set my focus';
+    yfChipsEl.innerHTML = FOCUS_SUGGESTIONS.map(s => `<button type="button" class="yf-chip">${s}</button>`).join('');
+    yfChipsEl.querySelectorAll('.yf-chip').forEach(btn => {
+      btn.addEventListener('click', () => { yfTextEl.value = btn.textContent; yfTextEl.focus(); });
+    });
+    yearFocusOverlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => yfTextEl.focus(), 60);
+  }
+  function closeYearFocus() {
+    yearFocusOverlay.classList.add('closing');
+    setTimeout(() => { yearFocusOverlay.hidden = true; yearFocusOverlay.classList.remove('closing'); document.body.style.overflow = ''; }, 160);
+  }
+  if (yfCtaBtn) yfCtaBtn.addEventListener('click', openYearFocus);
+  if (closeYearFocusBtn) closeYearFocusBtn.addEventListener('click', closeYearFocus);
+  if (yearFocusOverlay) yearFocusOverlay.addEventListener('click', e => { if (e.target === yearFocusOverlay) closeYearFocus(); });
+  if (saveYearFocusBtn) saveYearFocusBtn.addEventListener('click', () => {
+    const text = yfTextEl.value.trim();
+    if (!text) { yfTextEl.focus(); yfTextEl.classList.add('nudge'); setTimeout(() => yfTextEl.classList.remove('nudge'), 500); return; }
+    localStorage.setItem(YEAR_FOCUS_KEY, JSON.stringify({ year: new Date().getFullYear(), text }));
+    closeYearFocus();
+    renderYearFocusBar();
+    showAffirmation('Focus set. Come back and keep at it. 🌱');
+  });
+  if (clearYearFocusBtn) clearYearFocusBtn.addEventListener('click', () => {
+    localStorage.removeItem(YEAR_FOCUS_KEY);
+    yfTextEl.value = '';
+    clearYearFocusBtn.hidden = true;
+    saveYearFocusBtn.textContent = 'Set my focus';
+    renderYearFocusBar();
+    yfTextEl.focus();
+  });
+  document.addEventListener('keydown', e => { if (yearFocusOverlay && !yearFocusOverlay.hidden && e.key === 'Escape') closeYearFocus(); });
+  renderYearFocusBar();
+
   injectFlowerDefs();
 
   // ---- Search & filter past entries -----------------------------------------

@@ -121,6 +121,64 @@ body::before {
 .today-cta:active { transform: translateY(0) scale(0.97); }
 @keyframes ctaBreathe { 0%, 100% { box-shadow: 0 4px 14px rgba(224, 88, 122, 0.32); } 50% { box-shadow: 0 6px 20px rgba(224, 88, 122, 0.5); } }
 
+/* ---- Year-focus bar: days left this year + one thing to do consistently ---- */
+.year-focus-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: fit-content;
+  max-width: 92vw;
+  margin: 22px auto 0;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  backdrop-filter: blur(16px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 26px rgba(70, 60, 55, 0.14), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+.yf-count { display: flex; align-items: baseline; gap: 6px; flex: none; white-space: nowrap; }
+.yf-num { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.4rem; color: var(--accent); line-height: 1; }
+.yf-lbl { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em; color: var(--ink-soft); text-transform: uppercase; }
+.yf-cta {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 16px;
+  cursor: pointer;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.yf-cta:hover { transform: translateY(-1px); background: #fff; }
+.yf-cta.has-focus { background: var(--accent); color: #fff; border-color: transparent; box-shadow: 0 4px 14px rgba(224, 88, 122, 0.3); }
+.yf-cta.has-focus:hover { background: #d84e70; }
+
+.yf-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.yf-chip {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.yf-chip:hover { color: var(--ink); border-color: var(--accent); background: #fff; }
+
 /* Ambient drifting petals */
 .bg-petals {
   position: fixed;
@@ -1474,6 +1532,10 @@ textarea.nudge { animation: nudge 0.4s ease; }
 @media (max-width: 600px) {
   .hero h1 { font-size: 2.4rem; }
   .cover-title { font-size: 3.4rem; }
+
+  /* days-left bar: full width, stacked so the focus text has room to breathe */
+  .year-focus-bar { width: 100%; max-width: none; border-radius: 18px; flex-direction: column; gap: 8px; padding: 12px 16px; }
+  .yf-cta { max-width: 100%; white-space: normal; text-align: center; }
 
   /* tidy the habit bar into an even 2x2 */
   .stats-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

@@ -38,6 +38,14 @@
       <p class="tagline">A garden of small moments, opening one day at a time</p>
     </header>
 
+    <div class="year-focus-bar" id="yearFocusBar">
+      <div class="yf-count">
+        <span class="yf-num" id="yfDays"></span>
+        <span class="yf-lbl" id="yfLabel"></span>
+      </div>
+      <button type="button" class="yf-cta" id="yfCta"></button>
+    </div>
+
     <nav class="month-nav">
       <button id="prevMonth" class="nav-btn" aria-label="Previous">‹</button>
       <div class="month-label">
@@ -91,6 +99,24 @@
       <div class="modal-actions">
         <button id="clearFuture" class="btn btn-ghost" hidden>Start over</button>
         <button id="saveFuture" class="btn btn-primary">Seal this letter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Days-left-in-the-year focus: one consistent thing to do before it ends -->
+  <div id="yearFocusOverlay" class="modal-overlay" hidden>
+    <div class="modal future-modal" role="dialog" aria-modal="true" aria-labelledby="yfTitle">
+      <button id="closeYearFocus" class="close-btn" aria-label="Close">×</button>
+      <div class="modal-flower" id="yfFlower"></div>
+      <h3 id="yfTitle"></h3>
+      <p class="future-sub" id="yfSub"></p>
+      <div class="field-group">
+        <div class="yf-chips" id="yfChips"></div>
+        <textarea id="yfText" rows="3" placeholder="e.g. write a little every day, walk outside, call someone I love…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="clearYearFocus" class="btn btn-ghost" hidden>Clear</button>
+        <button id="saveYearFocus" class="btn btn-primary">Set my focus</button>
       </div>
     </div>
   </div>
@@ -189,6 +215,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20261020a"></script>
+  <script src="app.js?v=20261020b"></script>
 </body>
 </html>
