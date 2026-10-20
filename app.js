@@ -621,7 +621,7 @@
   let entries = loadEntries();
   let viewDate = new Date();
   viewDate.setDate(1);
-  let currentView = 'flat';   // 'flat' | 'ring' | 'year'
+  let currentView = 'flat';   // 'flat' | 'ring' | 'quarter' | 'year'
   let activeDateKey = null;
   let pendingPhoto = null;
   let selectedFlower = null;
@@ -641,6 +641,7 @@
   const exportBtn = document.getElementById('exportBtn');
   const viewFlatBtn = document.getElementById('viewFlat');
   const viewRingBtn = document.getElementById('viewRing');
+  const viewQuarterBtn = document.getElementById('viewQuarter');
   const viewYearBtn = document.getElementById('viewYear');
 
   const modalOverlay = document.getElementById('modalOverlay');
@@ -756,6 +757,7 @@
   function render() {
     updateStats();
     if (currentView === 'year') renderYear();
+    else if (currentView === 'quarter') renderQuarter();
     else renderCalendar(currentView);
   }
 
@@ -905,6 +907,77 @@
     bloomCountEl.textContent = total > 0
       ? `${total} bloom${total === 1 ? '' : 's'} across ${year}`
       : `${year} · a year waiting to bloom`;
+
+    grid.querySelectorAll('.yp-month').forEach(h => {
+      const go = () => { viewDate = new Date(year, Number(h.dataset.month), 1); setView('flat'); };
+      h.addEventListener('click', go);
+      h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+    grid.querySelectorAll('.yp-cell[data-key]').forEach(c => {
+      c.addEventListener('click', () => openModal(c.dataset.key));
+    });
+  }
+
+  // the three months (0-indexed) belonging to the quarter viewDate currently sits in
+  function quarterMonths(d) {
+    const start = Math.floor(d.getMonth() / 3) * 3;
+    return [start, start + 1, start + 2];
+  }
+
+  // same wall-planner grid as the year view, scoped to one quarter (~90 days)
+  function renderQuarter() {
+    weekdayRow.style.display = 'none';
+    grid.classList.remove('ring-mode');
+    grid.classList.add('year-mode');
+
+    const year = viewDate.getFullYear();
+    const months = quarterMonths(viewDate);
+    const qNum = Math.floor(months[0] / 3) + 1;
+    monthLabel.textContent = `Q${qNum} ${year}`;
+    const now = new Date();
+    const todayKey = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
+    const WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+    let ruler = `<div class="yp-corner"></div>`;
+    for (let d = 1; d <= 31; d++) ruler += `<div class="yp-head${d === 31 ? ' yp-head-end' : ''}">${d}</div>`;
+
+    let total = 0;
+    let body = '';
+    months.forEach((mi, idx) => {
+      const dim = new Date(year, mi + 1, 0).getDate();
+      const lastMonth = idx === months.length - 1;
+      body += `<div class="yp-month${lastMonth ? ' yp-month-end' : ''}" data-month="${mi}" role="button" tabindex="0">${MONTH_ABBR[mi]}</div>`;
+      for (let d = 1; d <= 31; d++) {
+        const cellEnd = lastMonth && d === 31 ? ' yp-cell-end' : '';
+        if (d > dim) { body += `<div class="yp-cell void${cellEnd}"></div>`; continue; }
+        const key = dateKey(year, mi, d);
+        const entry = entries[key];
+        const dow = new Date(year, mi, d).getDay();
+        const weekend = (dow === 0 || dow === 6) ? ' weekend' : '';
+        const today = key === todayKey ? ' today' : '';
+        if (entry) {
+          total++;
+          const f = FLOWERS[entry.flower] || FLOWERS.wildflower;
+          const note = (entry.text || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+          body += `<div class="yp-cell filled${weekend}${today}${cellEnd}" data-key="${key}" style="--c:${f.bg}" title="${MONTH_NAMES[mi]} ${d}${note ? ' · ' + note : ''}">
+            <span class="yp-dnum">${d}</span>
+            <span class="yp-wd">${WD[dow]}</span>
+            <div class="yp-fl">${flowerHeadSVG(entry.flower, 'color')}</div>
+          </div>`;
+        } else {
+          body += `<div class="yp-cell${weekend}${today}${cellEnd}" data-key="${key}" title="${MONTH_NAMES[mi]} ${d}">
+            <span class="yp-dnum">${d}</span>
+            <span class="yp-wd">${WD[dow]}</span>
+            <div class="yp-fl yp-bud">${flowerHeadSVG(dayFlowerType(key), 'ink')}</div>
+          </div>`;
+        }
+      }
+    });
+
+    grid.innerHTML = `<div class="year-planner quarter-planner">${ruler}${body}</div>`;
+    bloomCountEl.textContent = total > 0
+      ? `${total} bloom${total === 1 ? '' : 's'} this quarter`
+      : `Q${qNum} ${year} · 90 days waiting to bloom`;
 
     grid.querySelectorAll('.yp-month').forEach(h => {
       const go = () => { viewDate = new Date(year, Number(h.dataset.month), 1); setView('flat'); };
@@ -1129,7 +1202,7 @@
     // keep the calendar underneath in step with the day we're paging to
     if (nd.getMonth() !== viewDate.getMonth() || nd.getFullYear() !== viewDate.getFullYear()) {
       viewDate = new Date(nd.getFullYear(), nd.getMonth(), 1);
-      setView(currentView === 'year' ? 'flat' : currentView);
+      setView((currentView === 'year' || currentView === 'quarter') ? 'flat' : currentView);
     }
     postcard.classList.remove('slide-next', 'slide-prev');
     void postcard.offsetWidth;
@@ -1241,6 +1314,11 @@
       renderYear();
       return;
     }
+    if (currentView === 'quarter') {
+      viewDate.setMonth(viewDate.getMonth() + delta * 3);
+      renderQuarter();
+      return;
+    }
     if (currentView === 'ring' || prefersReducedMotion) {
       viewDate.setMonth(viewDate.getMonth() + delta);
       renderCalendar(currentView);
@@ -1261,7 +1339,7 @@
 
   function setView(view) {
     currentView = view;
-    [[viewFlatBtn, 'flat'], [viewRingBtn, 'ring'], [viewYearBtn, 'year']].forEach(([btn, v]) => {
+    [[viewFlatBtn, 'flat'], [viewRingBtn, 'ring'], [viewQuarterBtn, 'quarter'], [viewYearBtn, 'year']].forEach(([btn, v]) => {
       btn.classList.toggle('active', view === v);
       btn.setAttribute('aria-selected', view === v);
     });
@@ -1414,6 +1492,7 @@
   nextBtn.addEventListener('click', () => stepView(1));
   viewFlatBtn.addEventListener('click', () => setView('flat'));
   viewRingBtn.addEventListener('click', () => setView('ring'));
+  viewQuarterBtn.addEventListener('click', () => setView('quarter'));
   viewYearBtn.addEventListener('click', () => setView('year'));
   todayBtn.addEventListener('click', () => {
     viewDate = new Date();
