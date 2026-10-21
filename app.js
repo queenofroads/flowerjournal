@@ -977,7 +977,7 @@
     grid.innerHTML = `<div class="year-planner quarter-planner">${ruler}${body}</div>`;
     bloomCountEl.textContent = total > 0
       ? `${total} bloom${total === 1 ? '' : 's'} this quarter`
-      : `Q${qNum} ${year} · 90 days waiting to bloom`;
+      : `Q${qNum} ${year} · a quarter waiting to bloom`;
 
     grid.querySelectorAll('.yp-month').forEach(h => {
       const go = () => { viewDate = new Date(year, Number(h.dataset.month), 1); setView('flat'); };
