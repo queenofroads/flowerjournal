@@ -1430,6 +1430,57 @@ body::before {
 }
 .search-input:focus { outline: none; border-color: var(--accent); }
 
+/* ---- Account: back up + sync ---- */
+.account-pill {
+  margin: 14px auto 0;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  padding: 7px 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(70, 60, 55, 0.1);
+  transition: transform 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.account-pill:hover { transform: translateY(-1px); color: var(--ink); background: #fff; }
+.account-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.account-pill.is-on { color: #3f8f5e; }
+.account-pill.is-error { color: #b23350; border-color: rgba(178, 51, 80, 0.35); }
+
+.account-modal h3 { margin-top: 4px; }
+.account-input {
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: #fbf5ec;
+  color: var(--ink);
+}
+.account-input:focus { outline: none; border-color: var(--accent); }
+.account-hint { margin: 6px 0 0; font-size: 0.78rem; color: var(--ink-soft); }
+.account-hint[hidden] { display: none; }
+.account-error {
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #8c2440;
+  background: rgba(224, 88, 122, 0.12);
+}
+.account-sync { margin: 10px 0 0; font-size: 0.9rem; line-height: 1.45; color: var(--ink-soft); }
+.account-sync.is-error { color: #8c2440; }
+.account-modal .btn:disabled { opacity: 0.6; cursor: default; }
+
 .search-results { display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow-y: auto; margin-top: 4px; }
 .search-empty { color: var(--ink-soft); font-style: italic; text-align: center; padding: 18px 0; }
 

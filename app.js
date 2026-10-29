@@ -1266,6 +1266,7 @@
       savedAt: new Date().toISOString(),
     };
     saveEntries(entries);
+    cloudPushEntry(activeDateKey);
     justSavedKey = activeDateKey;
     saveEntryBtn.classList.add('saved');
     setTimeout(() => {
@@ -1288,8 +1289,10 @@
 
   deleteEntryBtn.addEventListener('click', () => {
     if (!activeDateKey) return;
-    delete entries[activeDateKey];
+    const deletedKey = activeDateKey;
+    delete entries[deletedKey];
     saveEntries(entries);
+    cloudDeleteEntry(deletedKey);
     closeModal();
     render();
   });
@@ -1576,11 +1579,13 @@
     const now = new Date();
     const opens = new Date(now); opens.setFullYear(opens.getFullYear() + 5);
     localStorage.setItem(FUTURE_KEY, JSON.stringify({ text, sealedOn: now.toISOString(), opensOn: opens.toISOString() }));
+    cloudSettingsChanged();
     closeFuture();
     showAffirmation(`Sealed. See you in ${opens.getFullYear()}. 💌`);
   });
   if (clearFutureBtn) clearFutureBtn.addEventListener('click', () => {
     localStorage.removeItem(FUTURE_KEY);
+    cloudSettingsChanged();
     futureText.value = '';
     futureSub.textContent = 'write it now, read it in five years';
     clearFutureBtn.hidden = true;
@@ -1667,12 +1672,14 @@
     const text = yfTextEl.value.trim();
     if (!text) { yfTextEl.focus(); yfTextEl.classList.add('nudge'); setTimeout(() => yfTextEl.classList.remove('nudge'), 500); return; }
     localStorage.setItem(YEAR_FOCUS_KEY, JSON.stringify({ year: new Date().getFullYear(), text }));
+    cloudSettingsChanged();
     closeYearFocus();
     renderYearFocusBar();
     showAffirmation('Focus set. Come back and keep at it. 🌱');
   });
   if (clearYearFocusBtn) clearYearFocusBtn.addEventListener('click', () => {
     localStorage.removeItem(YEAR_FOCUS_KEY);
+    cloudSettingsChanged();
     yfTextEl.value = '';
     clearYearFocusBtn.hidden = true;
     saveYearFocusBtn.textContent = 'Set my focus';
@@ -1681,6 +1688,384 @@
   });
   document.addEventListener('keydown', e => { if (yearFocusOverlay && !yearFocusOverlay.hidden && e.key === 'Escape') closeYearFocus(); });
   renderYearFocusBar();
+
+  // ---- Account + cloud backup (Supabase) ------------------------------------
+  // The journal stays local-first: localStorage is what the page renders from,
+  // and a signed-in account mirrors it to the cloud so it survives a lost phone
+  // and opens on any device. Each user can only ever read or write their own
+  // rows and photos (enforced by row-level security on the server).
+  const SUPABASE_URL = 'https://osifvhzaldutawovionk.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zaWZ2aHphbGR1dGF3b3Zpb25rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzM3MzEsImV4cCI6MjEwODQ0OTczMX0.IMH5iK_uS2QAKzLfZw02Z7id_H8J1WN_jDOQgrbfXlE';
+  const OWNER_KEY = 'flowerJournal.owner';
+  const SETTINGS_AT_KEY = 'flowerJournal.settingsAt';
+  const sb = (window.supabase && window.FJ_SUPABASE_URL !== null)
+    ? window.supabase.createClient(window.FJ_SUPABASE_URL || SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+  const accountPill = document.getElementById('accountPill');
+  const accountOverlay = document.getElementById('accountOverlay');
+  const accountSignedOut = document.getElementById('accountSignedOut');
+  const accountSignedIn = document.getElementById('accountSignedIn');
+  const accountForm = document.getElementById('accountForm');
+  const accountTitle = document.getElementById('accountTitle');
+  const accountSub = document.getElementById('accountSub');
+  const accountEmail = document.getElementById('accountEmail');
+  const accountPassword = document.getElementById('accountPassword');
+  const accountHint = document.getElementById('accountHint');
+  const accountError = document.getElementById('accountError');
+  const accountSwitch = document.getElementById('accountSwitch');
+  const accountSubmit = document.getElementById('accountSubmit');
+  const accountWho = document.getElementById('accountWho');
+  const accountSyncEl = document.getElementById('accountSync');
+  const accountSignOutBtn = document.getElementById('accountSignOut');
+  const accountSyncNowBtn = document.getElementById('accountSyncNow');
+  const closeAccountBtn = document.getElementById('closeAccount');
+
+  let cloudUser = null;
+  let syncState = 'idle';       // 'idle' | 'syncing' | 'ok' | 'error'
+  let lastSyncedAt = null;
+  let syncRunning = null;
+  let syncAgain = false;
+  let authMode = 'signup';      // 'signup' | 'signin'
+
+  // Postgres returns microseconds; trim to milliseconds so every browser parses it
+  const ts = s => (s ? Date.parse(String(s).replace(/(\.\d{3})\d+/, '$1')) || 0 : 0);
+
+  function updateAccountUI() {
+    if (!accountPill) return;
+    if (!sb) { accountPill.hidden = true; return; }
+    accountPill.classList.remove('is-on', 'is-error');
+    if (!cloudUser) {
+      accountPill.textContent = '☁ Back up my journal';
+    } else if (syncState === 'error') {
+      accountPill.textContent = '☁ Backup paused · tap to retry';
+      accountPill.classList.add('is-error');
+    } else if (syncState === 'syncing') {
+      accountPill.textContent = '☁ Backing up…';
+      accountPill.classList.add('is-on');
+    } else {
+      accountPill.textContent = '☁ Backed up';
+      accountPill.classList.add('is-on');
+    }
+    accountSignedOut.hidden = !!cloudUser;
+    accountSignedIn.hidden = !cloudUser;
+    if (cloudUser) {
+      accountWho.textContent = cloudUser.email || 'your account';
+      accountSyncEl.className = 'account-sync' + (syncState === 'error' ? ' is-error' : '');
+      accountSyncEl.textContent = syncState === 'syncing' ? 'Backing up your garden now…'
+        : syncState === 'error' ? 'The last backup did not finish. Your journal is still safe on this device; check your connection and tap Sync now.'
+        : lastSyncedAt ? `Last backed up ${new Date(lastSyncedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}.`
+        : 'Everything you write is saved to your account.';
+    }
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    const signup = mode === 'signup';
+    accountTitle.textContent = signup ? 'Keep your garden safe' : 'Welcome back';
+    accountSub.textContent = signup
+      ? 'Create a free account to back up your memories and open them on any phone or computer.'
+      : 'Sign in to bring your garden to this device.';
+    accountSubmit.textContent = signup ? 'Create account' : 'Sign in';
+    accountSwitch.textContent = signup ? 'Sign in instead' : 'New account';
+    accountPassword.autocomplete = signup ? 'new-password' : 'current-password';
+    accountHint.hidden = !signup;
+    accountError.hidden = true;
+  }
+
+  function openAccount() {
+    if (!sb) return;
+    if (!cloudUser) setAuthMode(authMode);
+    updateAccountUI();
+    accountOverlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (!cloudUser) setTimeout(() => accountEmail.focus(), 60);
+  }
+  function closeAccount() {
+    accountOverlay.classList.add('closing');
+    setTimeout(() => { accountOverlay.hidden = true; accountOverlay.classList.remove('closing'); document.body.style.overflow = ''; }, 160);
+  }
+
+  function friendlyAuthError(err) {
+    const msg = (err && err.message) || '';
+    if (/invalid login credentials/i.test(msg)) return 'That email and password do not match. Check them and try again.';
+    if (/already registered|already exists/i.test(msg)) return 'An account with this email already exists. Tap "Sign in instead".';
+    if (/email not confirmed/i.test(msg)) return 'This account still needs its email confirmed. Open the confirmation email, then sign in.';
+    if (/password/i.test(msg) && /(6|short|weak|characters)/i.test(msg)) return 'Choose a password with at least 6 characters.';
+    if (/valid email|invalid email|unable to validate email/i.test(msg)) return 'Enter a full email address, like name@example.com.';
+    if (/rate limit|too many/i.test(msg)) return 'Too many tries in a row. Wait a minute, then try again.';
+    if (/fetch|network|failed to/i.test(msg)) return 'Could not reach the backup service. Check your internet connection and try again.';
+    return msg || 'Something went wrong. Please try again.';
+  }
+
+  function showAuthError(text) { accountError.textContent = text; accountError.hidden = false; }
+
+  // empty this device's copy of the journal (the account keeps everything)
+  function clearLocalJournal() {
+    entries = {};
+    saveEntries(entries);
+    [FUTURE_KEY, YEAR_FOCUS_KEY, SETTINGS_AT_KEY].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+    render();
+    renderYearFocusBar();
+  }
+
+  function dataUrlToImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+  // shrink photos to a sensible size before upload so they stay well under the bucket limit
+  async function photoToJpegBlob(dataUrl) {
+    const img = await dataUrlToImage(dataUrl);
+    const max = 1600;
+    const scale = Math.min(1, max / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+  }
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  }
+
+  const photoPathFor = key => `${cloudUser.id}/${key}.jpg`;
+
+  async function pushEntry(key, { fresh = false } = {}) {
+    const e = entries[key];
+    if (!e || !cloudUser) return;
+    const path = photoPathFor(key);
+    if (e.photo && !e.photoSynced) {
+      const blob = await photoToJpegBlob(e.photo);
+      const { error } = await sb.storage.from('photos').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+      if (error) throw error;
+    } else if (!e.photo && !fresh) {
+      await sb.storage.from('photos').remove([path]);
+    }
+    const { error } = await sb.from('entries').upsert({
+      user_id: cloudUser.id,
+      day: key,
+      text: e.text || '',
+      mood: e.mood || null,
+      flower: e.flower || null,
+      prompt: e.prompt || null,
+      photo_path: e.photo ? path : null,
+      saved_at: e.savedAt || new Date().toISOString(),
+    }, { onConflict: 'user_id,day' });
+    if (error) throw error;
+    if (entries[key] === e) {
+      e.syncedAt = e.savedAt;
+      e.photoSynced = !!e.photo;
+    }
+  }
+
+  async function pullEntry(row) {
+    let photo = null;
+    if (row.photo_path) {
+      const { data, error } = await sb.storage.from('photos').download(row.photo_path);
+      if (!error && data) photo = await blobToDataUrl(data);
+    }
+    entries[row.day] = {
+      text: row.text || '',
+      mood: row.mood,
+      photo,
+      flower: row.flower,
+      prompt: row.prompt,
+      savedAt: row.saved_at,
+      syncedAt: row.saved_at,
+      photoSynced: !!photo,
+    };
+  }
+
+  async function syncSettings() {
+    const { data: row, error } = await sb.from('user_settings').select('*').maybeSingle();
+    if (error) throw error;
+    const localAt = (() => { try { return localStorage.getItem(SETTINGS_AT_KEY); } catch (e) { return null; } })();
+    const localLetter = loadFuture();
+    const localFocus = loadYearFocus();
+    if (row && (!localAt || ts(row.updated_at) > ts(localAt))) {
+      try {
+        if (row.future_letter) localStorage.setItem(FUTURE_KEY, JSON.stringify(row.future_letter)); else localStorage.removeItem(FUTURE_KEY);
+        if (row.year_focus) localStorage.setItem(YEAR_FOCUS_KEY, JSON.stringify(row.year_focus)); else localStorage.removeItem(YEAR_FOCUS_KEY);
+        localStorage.setItem(SETTINGS_AT_KEY, row.updated_at);
+      } catch (e) {}
+      renderYearFocusBar();
+    } else if ((localAt && (!row || ts(localAt) > ts(row.updated_at))) || (!row && (localLetter || localFocus))) {
+      const at = localAt || new Date().toISOString();
+      const { error: upErr } = await sb.from('user_settings').upsert({
+        user_id: cloudUser.id, future_letter: localLetter || null, year_focus: localFocus || null, updated_at: at,
+      }, { onConflict: 'user_id' });
+      if (upErr) throw upErr;
+      try { localStorage.setItem(SETTINGS_AT_KEY, at); } catch (e) {}
+    }
+  }
+
+  async function syncOnce() {
+    const { data: rows, error } = await sb.from('entries').select('*');
+    if (error) throw error;
+    const remote = new Map(rows.map(r => [r.day, r]));
+    let changed = false;
+    for (const row of rows) {
+      const local = entries[row.day];
+      const remoteAt = ts(row.saved_at);
+      const localAt = local ? ts(local.savedAt) : 0;
+      if (!local || localAt < remoteAt) { await pullEntry(row); changed = true; }
+      else if (localAt > remoteAt) { await pushEntry(row.day); changed = true; }
+      else if (!local.syncedAt) { local.syncedAt = local.savedAt; local.photoSynced = !!local.photo; changed = true; }
+    }
+    for (const key of Object.keys(entries)) {
+      if (remote.has(key)) continue;
+      // backed up before but gone from the account now: it was deleted on another device
+      if (entries[key].syncedAt) delete entries[key];
+      else await pushEntry(key, { fresh: true });
+      changed = true;
+    }
+    if (changed) { saveEntries(entries); render(); }
+    await syncSettings();
+  }
+
+  // one sync at a time; anything asked for meanwhile runs once more afterwards
+  function syncNow() {
+    if (!sb || !cloudUser) return Promise.resolve();
+    if (syncRunning) { syncAgain = true; return syncRunning; }
+    syncState = 'syncing';
+    updateAccountUI();
+    syncRunning = (async () => {
+      try {
+        do { syncAgain = false; await syncOnce(); } while (syncAgain);
+        syncState = 'ok';
+        lastSyncedAt = Date.now();
+      } catch (e) {
+        console.warn('Flower Journal backup failed', e);
+        syncState = 'error';
+      } finally {
+        syncRunning = null;
+        updateAccountUI();
+      }
+    })();
+    return syncRunning;
+  }
+
+  function cloudPushEntry(key) {
+    if (!sb || !cloudUser) return;
+    syncState = 'syncing';
+    updateAccountUI();
+    pushEntry(key).then(() => { saveEntries(entries); syncState = 'ok'; lastSyncedAt = Date.now(); updateAccountUI(); })
+      .catch(e => { console.warn('Flower Journal backup failed', e); syncState = 'error'; updateAccountUI(); });
+  }
+
+  function cloudDeleteEntry(key) {
+    if (!sb || !cloudUser) return;
+    Promise.all([
+      sb.from('entries').delete().eq('user_id', cloudUser.id).eq('day', key),
+      sb.storage.from('photos').remove([photoPathFor(key)]),
+    ]).then(([res]) => { if (res.error) throw res.error; syncState = 'ok'; lastSyncedAt = Date.now(); updateAccountUI(); })
+      .catch(e => { console.warn('Flower Journal backup failed', e); syncState = 'error'; updateAccountUI(); });
+  }
+
+  function cloudSettingsChanged() {
+    try { localStorage.setItem(SETTINGS_AT_KEY, new Date().toISOString()); } catch (e) {}
+    if (sb && cloudUser) syncNow();
+  }
+
+  function onSignedIn(user) {
+    let owner = null;
+    try { owner = localStorage.getItem(OWNER_KEY); } catch (e) {}
+    // this device held someone else's journal: never mix it into this account
+    if (owner && owner !== user.id) clearLocalJournal();
+    try { localStorage.setItem(OWNER_KEY, user.id); } catch (e) {}
+    cloudUser = user;
+    updateAccountUI();
+    syncNow();
+  }
+
+  if (sb) {
+    sb.auth.onAuthStateChange((event, session) => {
+      // run outside the auth callback: calling the client inside it can deadlock
+      setTimeout(() => {
+        const user = session && session.user;
+        if (user && (!cloudUser || cloudUser.id !== user.id)) onSignedIn(user);
+        else if (!user && cloudUser) { cloudUser = null; syncState = 'idle'; updateAccountUI(); }
+      }, 0);
+    });
+
+    accountPill.addEventListener('click', () => {
+      if (cloudUser && syncState === 'error') syncNow();
+      openAccount();
+    });
+    closeAccountBtn.addEventListener('click', closeAccount);
+    accountOverlay.addEventListener('click', e => { if (e.target === accountOverlay) closeAccount(); });
+    document.addEventListener('keydown', e => { if (!accountOverlay.hidden && e.key === 'Escape') closeAccount(); });
+    accountSwitch.addEventListener('click', () => { setAuthMode(authMode === 'signup' ? 'signin' : 'signup'); accountEmail.focus(); });
+
+    accountForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      accountError.hidden = true;
+      const email = accountEmail.value.trim();
+      const password = accountPassword.value;
+      if (!email || !/^\S+@\S+\.\S+$/.test(email)) { showAuthError('Enter a full email address, like name@example.com.'); accountEmail.focus(); return; }
+      if (password.length < 6) { showAuthError('Choose a password with at least 6 characters.'); accountPassword.focus(); return; }
+      accountSubmit.disabled = true;
+      const label = accountSubmit.textContent;
+      accountSubmit.textContent = authMode === 'signup' ? 'Creating…' : 'Signing in…';
+      try {
+        const { data, error } = authMode === 'signup'
+          ? await sb.auth.signUp({ email, password })
+          : await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (!data.session) {
+          showAuthError('Account created. Open the confirmation email we sent, then come back and sign in.');
+          setAuthMode('signin');
+          accountError.hidden = false;
+          return;
+        }
+        accountPassword.value = '';
+        closeAccount();
+        showAffirmation(authMode === 'signup' ? 'Account created. Your garden is backing up. ☁' : 'Signed in. Bringing your garden over. ☁');
+      } catch (err) {
+        showAuthError(friendlyAuthError(err));
+      } finally {
+        accountSubmit.disabled = false;
+        if (accountSubmit.textContent.endsWith('…')) accountSubmit.textContent = label;
+      }
+    });
+
+    accountSyncNowBtn.addEventListener('click', () => syncNow());
+    accountSignOutBtn.addEventListener('click', async () => {
+      accountSignOutBtn.disabled = true;
+      await syncNow();
+      if (syncState === 'error') {
+        accountSyncEl.className = 'account-sync is-error';
+        accountSyncEl.textContent = 'Your latest changes are not backed up yet, so you are still signed in. Check your connection and try Sync now first.';
+        accountSignOutBtn.disabled = false;
+        return;
+      }
+      await sb.auth.signOut();
+      cloudUser = null;
+      syncState = 'idle';
+      try { localStorage.removeItem(OWNER_KEY); } catch (e) {}
+      clearLocalJournal();
+      accountSignOutBtn.disabled = false;
+      setAuthMode('signin');
+      updateAccountUI();
+      closeAccount();
+      showAffirmation('Signed out. Your garden is safe in your account.');
+    });
+
+    // pick up entries written on another device when coming back to the app
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && cloudUser) syncNow();
+    });
+  }
+  updateAccountUI();
 
   injectFlowerDefs();
 

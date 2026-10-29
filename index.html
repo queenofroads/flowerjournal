@@ -36,6 +36,7 @@
     <header class="hero">
       <h1>Flower Journal</h1>
       <p class="tagline">A garden of small moments, opening one day at a time</p>
+      <button type="button" class="account-pill" id="accountPill">☁ Back up my journal</button>
     </header>
 
     <div class="year-focus-bar" id="yearFocusBar">
@@ -122,6 +123,42 @@
   </div>
 
   <!-- Search & filter past entries -->
+  <!-- Account: sign in to back up and sync the journal across devices -->
+  <div id="accountOverlay" class="modal-overlay" hidden>
+    <div class="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+      <button id="closeAccount" class="close-btn" aria-label="Close">×</button>
+      <div id="accountSignedOut">
+        <h3 id="accountTitle">Keep your garden safe</h3>
+        <p class="future-sub" id="accountSub">Create a free account to back up your memories and open them on any phone or computer.</p>
+        <form id="accountForm" novalidate>
+          <div class="field-group">
+            <label class="field-label" for="accountEmail">Email</label>
+            <input id="accountEmail" class="account-input" type="email" autocomplete="email" inputmode="email" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="accountPassword">Password</label>
+            <input id="accountPassword" class="account-input" type="password" autocomplete="new-password" minlength="6" required>
+            <p class="account-hint" id="accountHint">At least 6 characters.</p>
+          </div>
+          <p class="account-error" id="accountError" role="alert" hidden></p>
+          <div class="modal-actions">
+            <button type="button" id="accountSwitch" class="btn btn-ghost">Sign in instead</button>
+            <button type="submit" id="accountSubmit" class="btn btn-primary">Create account</button>
+          </div>
+        </form>
+      </div>
+      <div id="accountSignedIn" hidden>
+        <h3>Your garden is backed up</h3>
+        <p class="future-sub">Signed in as <strong id="accountWho"></strong></p>
+        <p class="account-sync" id="accountSync"></p>
+        <div class="modal-actions">
+          <button type="button" id="accountSignOut" class="btn btn-ghost">Sign out</button>
+          <button type="button" id="accountSyncNow" class="btn btn-primary">Sync now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="searchOverlay" class="modal-overlay" hidden>
     <div class="modal search-modal" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
       <button id="closeSearch" class="close-btn" aria-label="Close">×</button>
@@ -215,6 +252,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20261021a"></script>
+  <script src="vendor/supabase.js?v=2.45.4"></script>
+  <script src="app.js?v=20261029a"></script>
 </body>
 </html>
